@@ -56,3 +56,8 @@ export const getPaymentStatusColor = (status: string) => {
       return 'bg-gray-100 text-gray-800';
   }
 }
+
+export const formatWeight = (weight: number) => {
+  return weight.toFixed(2);
+}
+
