@@ -1,1 +1,36 @@
+
 project_id = "fozcumigqcpnpabrvyam"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage"]
+
+[db]
+port = 54322
+
+[studio]
+enabled = true
+port = 54323
+
+[auth]
+enabled = true
+
+[storage]
+enabled = true
+
+[realtime]
+enabled = true
+
+[functions]
+[functions.update-delivery-status]
+verify_jwt = true
+
+[functions.process-payment]
+verify_jwt = true
+
+[functions.get-notifications]
+verify_jwt = true
+
+[functions.send-delivery-emails]
+verify_jwt = false

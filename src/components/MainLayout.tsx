@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
@@ -18,14 +17,12 @@ import {
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth';
 import { Toaster } from 'sonner';
+import NotificationsPopover from './NotificationsPopover';
+import UserAccountDropdown from './UserAccountDropdown';
+import { IconProps } from '@/types/icon';
 
 interface MainLayoutProps {
   children: React.ReactNode;
-}
-
-// Add className interface to icons
-interface IconProps {
-  className?: string;
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
@@ -33,7 +30,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // If not logged in, redirect to login
   if (!user) {
     navigate('/login', { replace: true });
     return null;
@@ -161,14 +157,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   );
 };
 
-// Helper function to get page title based on current path
 const getPageTitle = (pathname: string): string => {
   const parts = pathname.split('/').filter(Boolean);
   if (parts.length === 0) return 'Dashboard';
   return parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
 };
 
-// Icon Components updated with className prop
 const HomeIcon: React.FC<IconProps> = ({ className }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className || "h-5 w-5"}>
     <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
@@ -230,30 +224,5 @@ const AdminIcon: React.FC<IconProps> = ({ className }) => (
     <path d="M7 14v.01" />
   </svg>
 );
-
-// Placeholder components for notifications and user dropdown
-const NotificationsPopover: React.FC = () => {
-  return (
-    <Button variant="ghost" size="icon">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
-        <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
-        <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
-      </svg>
-    </Button>
-  );
-};
-
-const UserAccountDropdown: React.FC = () => {
-  return (
-    <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
-        <circle cx="12" cy="12" r="10" />
-        <circle cx="12" cy="10" r="3" />
-        <path d="M12 13a5 5 0 0 0-5 5" />
-        <path d="M12 13a5 5 0 0 1 5 5" />
-      </svg>
-    </Button>
-  );
-};
 
 export default MainLayout;

@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/form';
 import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters' }),
@@ -60,12 +61,14 @@ const RegisterPage: React.FC = () => {
         });
       } else {
         toast.success('Registration successful', {
-          description: 'Please check your email to verify your account',
+          description: 'You can now log in with your credentials',
         });
         navigate('/login');
       }
-    } catch (err) {
-      toast.error('An unexpected error occurred');
+    } catch (err: any) {
+      toast.error('An unexpected error occurred', {
+        description: err.message || 'Please try again later',
+      });
       console.error(err);
     } finally {
       setIsLoading(false);
