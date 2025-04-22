@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
@@ -46,7 +45,6 @@ const AdminDashboardPage: React.FC = () => {
       const fetchAdminData = async () => {
         setLoading(true);
         try {
-          // Fetch total users count
           const { count: usersCount, error: usersError } = await supabase
             .from('users')
             .select('*', { count: 'exact', head: true })
@@ -54,25 +52,22 @@ const AdminDashboardPage: React.FC = () => {
 
           if (usersError) throw usersError;
 
-          // Fetch total vendors count
           const { count: vendorsCount, error: vendorsError } = await supabase
             .from('vendors')
             .select('*', { count: 'exact', head: true });
 
           if (vendorsError) throw vendorsError;
 
-          // Fetch total deliveries count
           const { count: deliveriesCount, error: deliveriesError } = await supabase
             .from('deliveries')
             .select('*', { count: 'exact', head: true });
 
           if (deliveriesError) throw deliveriesError;
 
-          // Fetch active deliveries count (pending + in_transit)
           const { count: activeDeliveriesCount, error: activeError } = await supabase
             .from('deliveries')
             .select('*', { count: 'exact', head: true })
-            .in('status', ['pending', 'in_transit', 'accepted']);
+            .in('status', ['pending', 'in_transit', 'accepted'] as any);
 
           if (activeError) throw activeError;
 
@@ -83,7 +78,6 @@ const AdminDashboardPage: React.FC = () => {
             activeDeliveries: activeDeliveriesCount || 0,
           });
 
-          // Fetch recent deliveries with user and vendor info
           const { data: recentData, error: recentError } = await supabase
             .from('deliveries')
             .select(`
@@ -100,7 +94,6 @@ const AdminDashboardPage: React.FC = () => {
 
           if (recentError) throw recentError;
 
-          // Transform the data to match our interface
           const formattedDeliveries = recentData?.map(delivery => ({
             id: delivery.id,
             pickup_address: delivery.pickup_address,
@@ -128,7 +121,6 @@ const AdminDashboardPage: React.FC = () => {
     }
   }, [user, isAdmin]);
 
-  // Filter deliveries based on search query
   const filteredDeliveries = recentDeliveries.filter(delivery => {
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
@@ -141,7 +133,6 @@ const AdminDashboardPage: React.FC = () => {
     );
   });
 
-  // Display access denied if not admin
   if (!isAdmin) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
@@ -160,7 +151,6 @@ const AdminDashboardPage: React.FC = () => {
         <p className="text-muted-foreground">System overview and management</p>
       </div>
 
-      {/* Stats Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Total Users"
@@ -192,7 +182,6 @@ const AdminDashboardPage: React.FC = () => {
         />
       </div>
 
-      {/* Recent Deliveries */}
       <div className="rounded-lg border bg-card text-card-foreground shadow">
         <div className="border-b p-4">
           <h2 className="text-xl font-semibold">Recent Deliveries</h2>
@@ -268,7 +257,6 @@ const AdminDashboardPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Quick Actions */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         <ActionCard
           title="Manage Users"
@@ -296,7 +284,6 @@ const AdminDashboardPage: React.FC = () => {
   );
 };
 
-// Helper component for stat cards
 interface StatCardProps {
   title: string;
   value: string;
@@ -323,7 +310,6 @@ const StatCard = ({ title, value, icon, color, loading = false }: StatCardProps)
   </div>
 );
 
-// Helper component for action cards
 interface ActionCardProps {
   title: string;
   description: string;
@@ -347,18 +333,15 @@ const ActionCard = ({ title, description, icon, buttonText, buttonLink }: Action
   </div>
 );
 
-// Helper function to truncate address
 const truncateAddress = (address?: string) => {
   if (!address) return 'N/A';
   return address.length > 15 ? `${address.substring(0, 15)}...` : address;
 };
 
-// Helper function to format status
 const formatStatus = (status: string) => {
   return status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ');
 };
 
-// Icons
 const UsersIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
     <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
@@ -404,7 +387,7 @@ const TruckIcon = () => (
 
 const SettingsIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
-    <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+    <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l-.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
     <circle cx="12" cy="12" r="3" />
   </svg>
 );

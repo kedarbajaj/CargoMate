@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -18,7 +17,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
 
-// Create schema for delivery form
 const formSchema = z.object({
   pickup_address: z.string().min(5, { message: 'Pickup address is required' }),
   drop_address: z.string().min(5, { message: 'Delivery address is required' }),
@@ -64,7 +62,6 @@ const NewDeliveryPage: React.FC = () => {
         if (error) throw error;
         
         setVendors(data || []);
-        // Select the first vendor by default if available
         if (data && data.length > 0) {
           setSelectedVendor(data[0].id);
         }
@@ -91,10 +88,8 @@ const NewDeliveryPage: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      // Format the date properly
       const scheduledDate = new Date(values.scheduled_date);
       
-      // Insert the new delivery
       const { data, error } = await supabase
         .from('deliveries')
         .insert({
@@ -110,25 +105,22 @@ const NewDeliveryPage: React.FC = () => {
 
       if (error) throw error;
 
-      // Send notification to user
       const userNotification = {
         user_id: user.id,
         message: `Your delivery from ${values.pickup_address} to ${values.drop_address} has been scheduled.`,
-        status: 'unread',
+        status: 'unread' as 'unread' | 'read',
       };
 
       await supabase.from('notifications').insert(userNotification);
       
-      // Send notification to vendor
       const vendorNotification = {
         user_id: selectedVendor,
         message: `New delivery request: Pickup from ${values.pickup_address} to ${values.drop_address}.`,
-        status: 'unread',
+        status: 'unread' as 'unread' | 'read',
       };
 
       await supabase.from('notifications').insert(vendorNotification);
 
-      // Call the edge function to send emails (we'll implement this later)
       await supabase.functions.invoke('send-delivery-emails', {
         body: {
           delivery: data?.[0],

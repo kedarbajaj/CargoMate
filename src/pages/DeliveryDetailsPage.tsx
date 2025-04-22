@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -6,6 +5,7 @@ import { useAuth } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { formatDate, getDeliveryStatusColor } from '@/lib/utils';
 import { toast } from 'sonner';
+import { Database } from '@/integrations/supabase/types';
 
 interface Delivery {
   id: string;
@@ -35,6 +35,9 @@ interface TrackingUpdate {
   updated_at: string;
 }
 
+type DeliveryStatus = Database['public']['Enums']['delivery_status'];
+type TrackingUpdateStatus = Database['public']['Enums']['delivery_update_status'];
+
 const DeliveryDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -51,7 +54,6 @@ const DeliveryDetailsPage: React.FC = () => {
     const fetchDeliveryDetails = async () => {
       setLoading(true);
       try {
-        // Fetch delivery details
         const { data: deliveryData, error: deliveryError } = await supabase
           .from('deliveries')
           .select('*')
@@ -61,7 +63,6 @@ const DeliveryDetailsPage: React.FC = () => {
         if (deliveryError) throw deliveryError;
         setDelivery(deliveryData);
 
-        // Fetch vendor details
         if (deliveryData.vendor_id) {
           const { data: vendorData, error: vendorError } = await supabase
             .from('vendors')
@@ -73,7 +74,6 @@ const DeliveryDetailsPage: React.FC = () => {
           setVendor(vendorData);
         }
 
-        // Fetch tracking updates
         const { data: trackingData, error: trackingError } = await supabase
           .from('tracking_updates')
           .select('*')
@@ -93,12 +93,11 @@ const DeliveryDetailsPage: React.FC = () => {
     fetchDeliveryDetails();
   }, [id, user]);
 
-  const handleStatusUpdate = async (newStatus: string) => {
+  const handleStatusUpdate = async (newStatus: DeliveryStatus) => {
     if (!delivery || !user) return;
     
     setActionLoading(true);
     try {
-      // Update delivery status
       const { error: updateError } = await supabase
         .from('deliveries')
         .update({ status: newStatus })
@@ -106,32 +105,40 @@ const DeliveryDetailsPage: React.FC = () => {
 
       if (updateError) throw updateError;
 
-      // Add tracking update
+      let trackingStatus: TrackingUpdateStatus;
+      switch(newStatus) {
+        case 'in_transit':
+          trackingStatus = 'In Transit';
+          break;
+        case 'delivered':
+          trackingStatus = 'Delivered';
+          break;
+        default:
+          trackingStatus = 'Dispatched';
+      }
+
       const { error: trackingError } = await supabase
         .from('tracking_updates')
         .insert({
           delivery_id: delivery.id,
-          status_update: newStatus,
-          latitude: null, // In a real app, you'd get GPS coordinates
+          status_update: trackingStatus,
+          latitude: null,
           longitude: null,
         });
 
       if (trackingError) throw trackingError;
 
-      // Create notification for customer
       await supabase.from('notifications').insert({
         user_id: delivery.user_id,
         message: `Your delivery #${delivery.id.slice(0, 8)} status has been updated to ${formatStatus(newStatus)}.`,
         status: 'unread',
       });
 
-      // Update delivery status in state
       setDelivery({
         ...delivery,
         status: newStatus,
       });
 
-      // Fetch the updated tracking updates
       const { data: trackingData } = await supabase
         .from('tracking_updates')
         .select('*')
@@ -140,7 +147,6 @@ const DeliveryDetailsPage: React.FC = () => {
 
       setTrackingUpdates(trackingData || []);
 
-      // Show success message
       toast.success(`Delivery status updated to ${formatStatus(newStatus)}`);
     } catch (error) {
       console.error('Error updating delivery status:', error);
@@ -155,7 +161,6 @@ const DeliveryDetailsPage: React.FC = () => {
 
     setActionLoading(true);
     try {
-      // Update delivery status to cancelled
       await handleStatusUpdate('cancelled');
     } catch (error) {
       console.error('Error cancelling delivery:', error);
@@ -203,7 +208,6 @@ const DeliveryDetailsPage: React.FC = () => {
             Back to Deliveries
           </Button>
           
-          {/* Only show if user owns this delivery and status is pending */}
           {user?.id === delivery.user_id && delivery.status === 'pending' && (
             <Button
               variant="destructive"
@@ -217,7 +221,6 @@ const DeliveryDetailsPage: React.FC = () => {
       </div>
       
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        {/* Delivery Information */}
         <div className="rounded-lg border bg-card p-6 text-card-foreground shadow">
           <h2 className="mb-4 text-lg font-semibold">Delivery Information</h2>
           
@@ -256,7 +259,6 @@ const DeliveryDetailsPage: React.FC = () => {
           </div>
         </div>
         
-        {/* Vendor Information */}
         <div className="rounded-lg border bg-card p-6 text-card-foreground shadow">
           <h2 className="mb-4 text-lg font-semibold">Vendor Information</h2>
           
@@ -339,18 +341,15 @@ const DeliveryDetailsPage: React.FC = () => {
         </div>
       </div>
       
-      {/* Tracking Updates */}
       <div className="rounded-lg border bg-card p-6 text-card-foreground shadow">
         <h2 className="mb-4 text-lg font-semibold">Tracking History</h2>
         
         {trackingUpdates.length > 0 ? (
           <div className="relative space-y-6">
-            {/* Timeline line */}
             <div className="absolute left-3.5 top-0 bottom-0 h-full w-px bg-gray-200"></div>
             
             {trackingUpdates.map((update, index) => (
               <div key={update.id} className="relative flex gap-4">
-                {/* Timeline point */}
                 <div className={`relative z-10 mt-1 h-2 w-2 rounded-full ${index === 0 ? 'bg-cargomate-500' : 'bg-gray-300'}`}></div>
                 <div>
                   <p className="font-medium">{formatStatus(update.status_update)}</p>
@@ -367,7 +366,6 @@ const DeliveryDetailsPage: React.FC = () => {
   );
 };
 
-// Helper function to format status
 const formatStatus = (status: string) => {
   return status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ');
 };

@@ -1,306 +1,242 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
-const LandingPage: React.FC = () => {
+const LandingPage = () => {
+  const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    console.log('Contact form submitted:', { name, email });
+    setName('');
+    setEmail('');
+    alert('Thanks for contacting us! We will get back to you soon.');
+  };
+
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Navigation */}
-      <header className="border-b">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <div className="flex items-center">
-            <h1 className="text-2xl font-bold text-cargomate-600">CargoMate</h1>
-          </div>
-          <nav className="hidden md:flex items-center space-x-6">
-            <Link to="/" className="text-sm font-medium hover:text-cargomate-500">Home</Link>
-            <Link to="#features" className="text-sm font-medium hover:text-cargomate-500">Features</Link>
-            <Link to="#pricing" className="text-sm font-medium hover:text-cargomate-500">Pricing</Link>
-            <Link to="#contact" className="text-sm font-medium hover:text-cargomate-500">Contact</Link>
-          </nav>
-          <div className="flex items-center space-x-4">
-            <Link to="/login">
-              <Button variant="outline">Sign In</Button>
-            </Link>
-            <Link to="/register">
-              <Button variant="cargomate">Register</Button>
-            </Link>
-          </div>
-        </div>
-      </header>
-
+    <div className="flex min-h-screen flex-col">
       {/* Hero Section */}
-      <section className="bg-gradient-to-b from-cargomate-50 to-white py-20">
+      <header className="bg-gradient-to-r from-cargomate-900 to-cargomate-700 pb-16 pt-24 text-white">
         <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row items-center">
-            <div className="md:w-1/2 mb-10 md:mb-0">
-              <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900 leading-tight">
-                Fast & Reliable <span className="text-cargomate-600">Cargo Delivery</span> Services
+          <div className="grid grid-cols-1 items-center gap-12 md:grid-cols-2">
+            <div className="space-y-6">
+              <h1 className="text-4xl font-bold leading-tight sm:text-5xl md:text-6xl">
+                Modern Logistics <span className="text-cargomate-300">Solution</span> for Your Business
               </h1>
-              <p className="text-lg mb-8 text-gray-600">
-                Simplify your logistics with CargoMate's smart delivery management system. Track shipments in real-time, manage vendors, and optimize your delivery operations.
+              <p className="text-lg text-gray-300">
+                Streamline your deliveries with our efficient and reliable logistics platform.
+                Track shipments in real-time and ensure customer satisfaction.
               </p>
-              <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
+              <div className="flex gap-4">
                 <Link to="/register">
                   <Button size="lg" variant="cargomate">Get Started</Button>
                 </Link>
-                <Link to="/tracking">
-                  <Button size="lg" variant="outline">Track Shipment</Button>
+                <Link to="/login">
+                  <Button size="lg" variant="outline" className="bg-white/10 text-white hover:bg-white/20">
+                    Sign In
+                  </Button>
                 </Link>
               </div>
             </div>
-            <div className="md:w-1/2 md:pl-10">
-              <img 
-                src="https://img.freepik.com/free-vector/delivery-service-illustrated_23-2148505081.jpg?w=740&t=st=1678892287~exp=1678892887~hmac=5c5db23d53f2c353c8a5a284c963c8d4712d9e0ce63a0e3c7356c8bef598ef38" 
-                alt="Delivery Illustration" 
-                className="rounded-lg shadow-xl"
+            <div className="hidden md:block">
+              <img
+                src="/delivery-illustration.svg"
+                alt="Delivery Illustration"
+                className="mx-auto h-auto max-w-full"
               />
             </div>
           </div>
         </div>
-      </section>
+      </header>
 
       {/* Features Section */}
-      <section id="features" className="py-20">
+      <section className="py-24">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">Our Features</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Everything you need to streamline your delivery operations and provide exceptional service
+          <div className="mb-12 text-center">
+            <h2 className="mb-4 text-3xl font-bold text-gray-900 sm:text-4xl">Why Choose CargoMate?</h2>
+            <p className="mx-auto max-w-3xl text-lg text-gray-600">
+              Our platform provides everything you need to manage your deliveries efficiently
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            <FeatureCard 
-              icon={<TrackIcon />}
-              title="Real-time Tracking"
-              description="Track all your deliveries in real-time with accurate GPS locations and status updates."
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            <FeatureCard
+              icon={<TruckIcon />}
+              title="Real-Time Tracking"
+              description="Track your deliveries in real-time with accurate GPS location data and status updates"
             />
-            <FeatureCard 
-              icon={<VendorIcon />}
-              title="Vendor Management"
-              description="Manage multiple vendors, assign deliveries, and monitor their performance."
+            <FeatureCard
+              icon={<ClockIcon />}
+              title="Scheduled Deliveries"
+              description="Plan ahead with our easy-to-use scheduling system and never miss a delivery window"
             />
-            <FeatureCard 
-              icon={<RouteIcon />}
-              title="Route Optimization"
-              description="Optimize delivery routes to save time, reduce fuel costs, and improve efficiency."
-            />
-            <FeatureCard 
-              icon={<NotificationIcon />}
-              title="Smart Notifications"
-              description="Get instant notifications for delivery updates, delays, and successful deliveries."
-            />
-            <FeatureCard 
-              icon={<PaymentIcon />}
-              title="Secure Payments"
-              description="Process payments securely and maintain a complete history of all transactions."
-            />
-            <FeatureCard 
-              icon={<ReportIcon />}
-              title="Analytics & Reports"
-              description="Generate detailed reports and analytics to improve your delivery operations."
+            <FeatureCard
+              icon={<ChartIcon />}
+              title="Analytics Dashboard"
+              description="Gain insights into your delivery performance with comprehensive analytics and reports"
             />
           </div>
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <section id="pricing" className="py-20 bg-gray-50">
+      {/* How It Works */}
+      <section className="bg-gray-50 py-24">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">Simple, Transparent Pricing</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Choose a plan that works for your business needs
+          <div className="mb-12 text-center">
+            <h2 className="mb-4 text-3xl font-bold text-gray-900 sm:text-4xl">How It Works</h2>
+            <p className="mx-auto max-w-3xl text-lg text-gray-600">
+              Getting started with CargoMate is simple and straightforward
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            <PricingCard 
-              title="Basic"
-              price="$19"
-              period="per month"
-              description="Great for small businesses just getting started with deliveries"
-              features={[
-                "Up to 50 deliveries/month",
-                "Basic tracking",
-                "Email notifications",
-                "1 admin user"
-              ]}
-              buttonText="Get Started"
-              buttonLink="/register"
-              highlighted={false}
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+            <StepCard
+              number="1"
+              title="Create Account"
+              description="Sign up and set up your business profile with just a few clicks"
             />
-            <PricingCard 
-              title="Pro"
-              price="$49"
-              period="per month"
-              description="Perfect for growing businesses with regular delivery needs"
-              features={[
-                "Up to 200 deliveries/month",
-                "Real-time GPS tracking",
-                "Email & SMS notifications",
-                "Route optimization",
-                "3 admin users"
-              ]}
-              buttonText="Get Started"
-              buttonLink="/register"
-              highlighted={true}
+            <StepCard
+              number="2"
+              title="Schedule Delivery"
+              description="Enter pickup and delivery details and select your preferred time slot"
             />
-            <PricingCard 
-              title="Enterprise"
-              price="$99"
-              period="per month"
-              description="For large businesses with high-volume delivery operations"
-              features={[
-                "Unlimited deliveries",
-                "Advanced GPS tracking",
-                "Priority support",
-                "Custom integrations",
-                "Advanced analytics",
-                "Unlimited users"
-              ]}
-              buttonText="Contact Sales"
-              buttonLink="#contact"
-              highlighted={false}
+            <StepCard
+              number="3"
+              title="Track & Manage"
+              description="Monitor deliveries in real-time and keep your customers informed"
             />
           </div>
         </div>
       </section>
 
-      {/* Contact Section */}
-      <section id="contact" className="py-20">
+      {/* Contact Form */}
+      <section className="py-24">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">Get in Touch</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Have questions or need help? Contact our support team
-            </p>
-          </div>
-
-          <div className="max-w-3xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
-            <div className="grid md:grid-cols-2">
-              <div className="p-8 bg-cargomate-600 text-white">
-                <h3 className="text-2xl font-bold mb-6">Contact Information</h3>
-                <div className="space-y-6">
-                  <div className="flex items-start">
-                    <MailIcon className="mr-4 h-6 w-6" />
-                    <div>
-                      <p className="font-medium">Email</p>
-                      <p>support@cargomate.com</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start">
-                    <PhoneIcon className="mr-4 h-6 w-6" />
-                    <div>
-                      <p className="font-medium">Phone</p>
-                      <p>+1 (555) 123-4567</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start">
-                    <LocationIcon className="mr-4 h-6 w-6" />
-                    <div>
-                      <p className="font-medium">Address</p>
-                      <p>123 Delivery St, Logisticsville</p>
-                      <p>CA 90210, USA</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="p-8">
-                <h3 className="text-xl font-bold mb-6">Send us a message</h3>
-                <form className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1" htmlFor="name">
-                      Name
-                    </label>
-                    <Input id="name" placeholder="Your name" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1" htmlFor="email">
-                      Email
-                    </label>
-                    <Input id="email" type="email" placeholder="your@email.com" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1" htmlFor="message">
-                      Message
-                    </label>
-                    <textarea
-                      id="message"
-                      rows={4}
-                      className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                      placeholder="How can we help you?"
-                    ></textarea>
-                  </div>
-                  <Button type="submit" variant="cargomate" className="w-full">
-                    Send Message
-                  </Button>
-                </form>
-              </div>
+          <div className="mx-auto max-w-3xl rounded-xl bg-white p-6 shadow-xl md:p-10">
+            <div className="mb-8 text-center">
+              <h2 className="mb-2 text-3xl font-bold text-gray-900">Get In Touch</h2>
+              <p className="text-gray-600">Have questions? We're here to help you get started.</p>
             </div>
+            
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div>
+                <label htmlFor="name" className="mb-2 block text-sm font-medium text-gray-700">
+                  Name
+                </label>
+                <Input
+                  id="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Your name"
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="email" className="mb-2 block text-sm font-medium text-gray-700">
+                  Email
+                </label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="your.email@example.com"
+                  required
+                />
+              </div>
+              <Button type="submit" className="w-full" size="lg" variant="cargomate">
+                Send Message
+              </Button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section className="bg-gray-50 py-24">
+        <div className="container mx-auto px-4">
+          <div className="mb-12 text-center">
+            <h2 className="mb-4 text-3xl font-bold text-gray-900 sm:text-4xl">What Our Clients Say</h2>
+            <p className="mx-auto max-w-3xl text-lg text-gray-600">
+              Don't just take our word for it — here's what businesses like yours have to say
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+            <TestimonialCard
+              quote="CargoMate revolutionized our delivery operations. We've reduced delivery times by 30% and improved customer satisfaction."
+              author="John Smith"
+              company="Tech Solutions Inc."
+            />
+            <TestimonialCard
+              quote="The real-time tracking feature has been a game-changer for our business. Our customers love the transparency."
+              author="Sarah Johnson"
+              company="Global Retail"
+            />
+            <TestimonialCard
+              quote="The analytics dashboard gives us valuable insights into our delivery performance, helping us optimize our operations."
+              author="Michael Chen"
+              company="Rapid Logistics"
+            />
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
+      <footer className="bg-gray-900 py-12 text-gray-300">
         <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
             <div>
-              <h3 className="text-lg font-bold mb-4">CargoMate</h3>
-              <p className="text-gray-400">
-                Modern delivery management platform for businesses of all sizes.
-              </p>
+              <h3 className="mb-4 text-lg font-semibold text-white">CargoMate</h3>
+              <p className="mb-4">Modern logistics solution for businesses of all sizes.</p>
+              <div className="flex space-x-4">
+                <SocialIcon href="#" aria-label="Twitter">
+                  <TwitterIcon />
+                </SocialIcon>
+                <SocialIcon href="#" aria-label="Facebook">
+                  <FacebookIcon />
+                </SocialIcon>
+                <SocialIcon href="#" aria-label="LinkedIn">
+                  <LinkedInIcon />
+                </SocialIcon>
+                <SocialIcon href="#" aria-label="Instagram">
+                  <InstagramIcon />
+                </SocialIcon>
+              </div>
             </div>
             <div>
-              <h3 className="text-lg font-bold mb-4">Company</h3>
+              <h3 className="mb-4 text-lg font-semibold text-white">Services</h3>
               <ul className="space-y-2">
-                <li><Link to="#" className="text-gray-400 hover:text-white">About Us</Link></li>
-                <li><Link to="#" className="text-gray-400 hover:text-white">Careers</Link></li>
-                <li><Link to="#" className="text-gray-400 hover:text-white">Blog</Link></li>
-                <li><Link to="#" className="text-gray-400 hover:text-white">Press</Link></li>
+                <FooterLink href="#">Delivery Management</FooterLink>
+                <FooterLink href="#">Real-Time Tracking</FooterLink>
+                <FooterLink href="#">Analytics</FooterLink>
+                <FooterLink href="#">API Integration</FooterLink>
               </ul>
             </div>
             <div>
-              <h3 className="text-lg font-bold mb-4">Resources</h3>
+              <h3 className="mb-4 text-lg font-semibold text-white">Company</h3>
               <ul className="space-y-2">
-                <li><Link to="#" className="text-gray-400 hover:text-white">Documentation</Link></li>
-                <li><Link to="#" className="text-gray-400 hover:text-white">Help Center</Link></li>
-                <li><Link to="#" className="text-gray-400 hover:text-white">API Status</Link></li>
-                <li><Link to="#" className="text-gray-400 hover:text-white">Partners</Link></li>
+                <FooterLink href="#">About Us</FooterLink>
+                <FooterLink href="#">Careers</FooterLink>
+                <FooterLink href="#">Blog</FooterLink>
+                <FooterLink href="#">Contact</FooterLink>
               </ul>
             </div>
             <div>
-              <h3 className="text-lg font-bold mb-4">Legal</h3>
+              <h3 className="mb-4 text-lg font-semibold text-white">Legal</h3>
               <ul className="space-y-2">
-                <li><Link to="#" className="text-gray-400 hover:text-white">Privacy Policy</Link></li>
-                <li><Link to="#" className="text-gray-400 hover:text-white">Terms of Service</Link></li>
-                <li><Link to="#" className="text-gray-400 hover:text-white">Cookie Policy</Link></li>
-                <li><Link to="#" className="text-gray-400 hover:text-white">GDPR</Link></li>
+                <FooterLink href="#">Terms of Service</FooterLink>
+                <FooterLink href="#">Privacy Policy</FooterLink>
+                <FooterLink href="#">Cookies</FooterLink>
+                <FooterLink href="#">GDPR</FooterLink>
               </ul>
             </div>
           </div>
-          <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
-            <p className="text-gray-400">© 2023 CargoMate. All rights reserved.</p>
-            <div className="flex space-x-4 mt-4 md:mt-0">
-              <Link to="#" className="text-gray-400 hover:text-white">
-                <TwitterIcon className="h-6 w-6" />
-                <span className="sr-only">Twitter</span>
-              </Link>
-              <Link to="#" className="text-gray-400 hover:text-white">
-                <FacebookIcon className="h-6 w-6" />
-                <span className="sr-only">Facebook</span>
-              </Link>
-              <Link to="#" className="text-gray-400 hover:text-white">
-                <InstagramIcon className="h-6 w-6" />
-                <span className="sr-only">Instagram</span>
-              </Link>
-              <Link to="#" className="text-gray-400 hover:text-white">
-                <LinkedInIcon className="h-6 w-6" />
-                <span className="sr-only">LinkedIn</span>
-              </Link>
-            </div>
+          <div className="mt-12 pt-8 text-center text-sm border-t border-gray-800">
+            <p>&copy; {new Date().getFullYear()} CargoMate. All rights reserved.</p>
           </div>
         </div>
       </footer>
@@ -308,179 +244,125 @@ const LandingPage: React.FC = () => {
   );
 };
 
-// Feature Card Component
-interface FeatureCardProps {
+// Helper components
+const FeatureCard: React.FC<{
   icon: React.ReactNode;
   title: string;
   description: string;
-}
-
-const FeatureCard: React.FC<FeatureCardProps> = ({ icon, title, description }) => {
-  return (
-    <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100 transition-all hover:shadow-lg">
-      <div className="bg-cargomate-50 p-3 rounded-full w-12 h-12 flex items-center justify-center text-cargomate-600 mb-4">
-        {icon}
-      </div>
-      <h3 className="text-lg font-bold mb-2">{title}</h3>
-      <p className="text-gray-600">{description}</p>
+}> = ({ icon, title, description }) => (
+  <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm transition-transform duration-200 hover:transform hover:scale-105">
+    <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-cargomate-100 text-cargomate-500">
+      {icon}
     </div>
-  );
-};
+    <h3 className="mb-2 text-xl font-semibold">{title}</h3>
+    <p className="text-gray-600">{description}</p>
+  </div>
+);
 
-// Pricing Card Component
-interface PricingCardProps {
+const StepCard: React.FC<{
+  number: string;
   title: string;
-  price: string;
-  period: string;
   description: string;
-  features: string[];
-  buttonText: string;
-  buttonLink: string;
-  highlighted: boolean;
-}
-
-const PricingCard: React.FC<PricingCardProps> = ({ 
-  title, 
-  price, 
-  period, 
-  description, 
-  features, 
-  buttonText, 
-  buttonLink, 
-  highlighted 
-}) => {
-  return (
-    <div className={`rounded-lg shadow-lg overflow-hidden transition-transform ${
-      highlighted ? 'border-2 border-cargomate-500 transform scale-105' : 'border border-gray-200'
-    }`}>
-      <div className={`p-6 ${highlighted ? 'bg-cargomate-50' : 'bg-white'}`}>
-        <h3 className="text-xl font-bold mb-2">{title}</h3>
-        <div className="flex items-baseline mb-4">
-          <span className="text-3xl font-bold">{price}</span>
-          <span className="text-gray-500 ml-1">{period}</span>
-        </div>
-        <p className="text-gray-600 mb-4">{description}</p>
-        <Link to={buttonLink}>
-          <Button 
-            variant={highlighted ? "cargomate" : "outline"} 
-            className="w-full"
-          >
-            {buttonText}
-          </Button>
-        </Link>
-      </div>
-      <div className="bg-gray-50 p-6">
-        <ul className="space-y-3">
-          {features.map((feature, index) => (
-            <li key={index} className="flex items-center">
-              <CheckIcon className="h-5 w-5 text-green-500 mr-2" />
-              <span>{feature}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
+}> = ({ number, title, description }) => (
+  <div className="flex flex-col items-center text-center">
+    <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-cargomate-500 text-2xl font-bold text-white">
+      {number}
     </div>
-  );
-};
+    <h3 className="mb-2 text-xl font-semibold">{title}</h3>
+    <p className="text-gray-600">{description}</p>
+  </div>
+);
 
-// Icons
-const TrackIcon = () => (
+const TestimonialCard: React.FC<{
+  quote: string;
+  author: string;
+  company: string;
+}> = ({ quote, author, company }) => (
+  <div className="rounded-lg border border-gray-200 bg-white p-6 shadow">
+    <div className="mb-4 text-cargomate-500">
+      <QuoteIcon />
+    </div>
+    <p className="mb-6 italic text-gray-700">{quote}</p>
+    <div>
+      <p className="font-semibold">{author}</p>
+      <p className="text-sm text-gray-600">{company}</p>
+    </div>
+  </div>
+);
+
+const SocialIcon: React.FC<React.ComponentPropsWithRef<"a">> = ({ children, ...props }) => (
+  <a {...props} className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-800 text-white transition-colors hover:bg-cargomate-500">
+    {children}
+  </a>
+);
+
+const FooterLink: React.FC<React.ComponentPropsWithRef<"a">> = ({ children, ...props }) => (
+  <li>
+    <a {...props} className="hover:text-cargomate-300 transition-colors">
+      {children}
+    </a>
+  </li>
+);
+
+// Icon components
+const TruckIcon: React.FC = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="m3 11 18-5v12L3 14v-3Z" />
-    <path d="M11 12a3 3 0 0 0 0 6 3 3 0 0 0 0-6Z" />
+    <path d="M10 17h4V5H2v12h3"/>
+    <path d="M20 17h2v-3.34a4 4 0 0 0-1.17-2.83L19 9h-5"/>
+    <path d="M14 17h1"/>
+    <circle cx="7.5" cy="17.5" r="2.5"/>
+    <circle cx="17.5" cy="17.5" r="2.5"/>
   </svg>
 );
 
-const VendorIcon = () => (
+const ClockIcon: React.FC = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
-    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+    <circle cx="12" cy="12" r="10"/>
+    <polyline points="12 6 12 12 16 14"/>
   </svg>
 );
 
-const RouteIcon = () => (
+const ChartIcon: React.FC = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10" />
-    <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
-    <path d="M2 12h20" />
+    <path d="M3 3v18h18"/>
+    <path d="M18 17V9"/>
+    <path d="M13 17V5"/>
+    <path d="M8 17v-3"/>
   </svg>
 );
 
-const NotificationIcon = () => (
+const QuoteIcon: React.FC = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
-    <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+    <path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/>
+    <path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/>
   </svg>
 );
 
-const PaymentIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect width="20" height="14" x="2" y="5" rx="2" />
-    <line x1="2" x2="22" y1="10" y2="10" />
+const TwitterIcon: React.FC = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/>
   </svg>
 );
 
-const ReportIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-    <path d="M14 2v6h6" />
-    <path d="M16 13H8" />
-    <path d="M16 17H8" />
-    <path d="M10 9H8" />
+const FacebookIcon: React.FC = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
   </svg>
 );
 
-const CheckIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M20 6 9 17l-5-5" />
+const LinkedInIcon: React.FC = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/>
+    <rect x="2" y="9" width="4" height="12"/>
+    <circle cx="4" cy="4" r="2"/>
   </svg>
 );
 
-const MailIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect width="20" height="16" x="2" y="4" rx="2" />
-    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
-  </svg>
-);
-
-const PhoneIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-  </svg>
-);
-
-const LocationIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
-    <circle cx="12" cy="10" r="3" />
-  </svg>
-);
-
-const TwitterIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z" />
-  </svg>
-);
-
-const FacebookIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
-  </svg>
-);
-
-const InstagramIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
-    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-    <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
-  </svg>
-);
-
-const LinkedInIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
-    <rect width="4" height="12" x="2" y="9" />
-    <circle cx="4" cy="4" r="2" />
+const InstagramIcon: React.FC = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+    <line x1="17.5" y1="6.5" x2="17.5" y2="6.5"/>
   </svg>
 );
 

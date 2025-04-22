@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
@@ -50,16 +49,13 @@ const DeliveriesPage: React.FC = () => {
     }
   }, [user]);
 
-  // Apply filters whenever search query or status filter changes
   useEffect(() => {
     let filtered = [...deliveries];
     
-    // Apply status filter
     if (statusFilter !== 'all') {
       filtered = filtered.filter(delivery => delivery.status === statusFilter);
     }
     
-    // Apply search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
@@ -86,7 +82,7 @@ const DeliveriesPage: React.FC = () => {
         <h1 className="text-2xl font-bold">Your Deliveries</h1>
         <Link to="/deliveries/new">
           <Button variant="cargomate">
-            <PlusIcon className="mr-2 h-4 w-4" />
+            <PlusIcon />
             New Delivery
           </Button>
         </Link>
@@ -185,7 +181,6 @@ const DeliveriesPage: React.FC = () => {
   );
 };
 
-// Helper component for status filter buttons
 interface StatusFilterButtonProps {
   status: string;
   currentFilter: string;
@@ -204,26 +199,23 @@ const StatusFilterButton = ({ status, currentFilter, onClick, label }: StatusFil
   </Button>
 );
 
-// Helper function to truncate address
 const truncateAddress = (address?: string) => {
   if (!address) return 'N/A';
   return address.length > 20 ? `${address.substring(0, 20)}...` : address;
 };
 
-// Helper function to format status
 const formatStatus = (status: string) => {
   return status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ');
 };
 
-// Icons
-const PlusIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+const PlusIcon: React.FC = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 h-4 w-4">
     <path d="M12 5v14" />
     <path d="M5 12h14" />
   </svg>
 );
 
-const PackageIcon = () => (
+const PackageIcon: React.FC = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
     <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" />
     <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" />
