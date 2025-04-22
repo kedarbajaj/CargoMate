@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/form';
 import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
+import { Loader2 } from 'lucide-react';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address' }),
@@ -24,8 +25,15 @@ const formSchema = z.object({
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
-  const { signIn } = useAuth();
+  const { signIn, user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      navigate('/dashboard');
+    }
+  }, [user, navigate]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -38,8 +46,11 @@ const LoginPage: React.FC = () => {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
     try {
+      console.log('Attempting to sign in with:', values.email);
       const { error } = await signIn(values.email, values.password);
+      
       if (error) {
+        console.error('Login error:', error);
         toast.error('Login failed', {
           description: error.message || 'Please check your credentials and try again',
         });
@@ -48,8 +59,8 @@ const LoginPage: React.FC = () => {
         navigate('/dashboard');
       }
     } catch (err) {
+      console.error('Unexpected error during login:', err);
       toast.error('An unexpected error occurred');
-      console.error(err);
     } finally {
       setIsLoading(false);
     }
@@ -98,9 +109,16 @@ const LoginPage: React.FC = () => {
                 type="submit"
                 className="w-full"
                 disabled={isLoading}
-                variant="cargomate"
+                variant="default"
               >
-                {isLoading ? 'Signing in...' : 'Sign in'}
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Signing in...
+                  </>
+                ) : (
+                  'Sign in'
+                )}
               </Button>
             </div>
           </form>
@@ -109,7 +127,7 @@ const LoginPage: React.FC = () => {
         <div className="mt-6 text-center">
           <p>
             Don't have an account?{' '}
-            <Link to="/register" className="font-medium text-cargomate-600 hover:text-cargomate-500">
+            <Link to="/register" className="font-medium text-blue-600 hover:text-blue-500">
               Sign up
             </Link>
           </p>

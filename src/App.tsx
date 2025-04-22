@@ -1,8 +1,8 @@
 
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from 'sonner';
-import { AuthProvider } from './lib/auth';
+import { AuthProvider, useAuth } from './lib/auth';
 import MainLayout from './components/MainLayout';
 
 // Auth Pages
@@ -28,11 +28,11 @@ const App: React.FC = () => {
   useEffect(() => {
     const checkSupabaseConnection = async () => {
       try {
-        const { error } = await supabase.from('users').select('id').limit(1);
+        const { data, error } = await supabase.from('users').select('id').limit(1);
         if (error) {
           console.error('Supabase connection test failed:', error);
         } else {
-          console.log('Supabase connection successful');
+          console.log('Supabase connection successful:', data);
         }
       } catch (err) {
         console.error('Error testing Supabase connection:', err);
@@ -85,7 +85,7 @@ const App: React.FC = () => {
           } />
           
           <Route path="/vendor-dashboard" element={
-            <ProtectedRoute>
+            <ProtectedRoute requireVendor>
               <MainLayout>
                 <VendorDashboardPage />
               </MainLayout>
@@ -93,7 +93,7 @@ const App: React.FC = () => {
           } />
           
           <Route path="/admin-dashboard" element={
-            <ProtectedRoute>
+            <ProtectedRoute requireAdmin>
               <MainLayout>
                 <AdminDashboardPage />
               </MainLayout>
@@ -135,34 +135,51 @@ const App: React.FC = () => {
 };
 
 // Protected Route Component
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const [isLoading, setIsLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+interface ProtectedRouteProps {
+  children: React.ReactNode;
+  requireAdmin?: boolean;
+  requireVendor?: boolean;
+}
+
+const ProtectedRoute = ({ children, requireAdmin = false, requireVendor = false }: ProtectedRouteProps) => {
+  const { user, loading, isAdmin, isVendor } = useAuth();
+  const [authChecked, setAuthChecked] = useState(false);
+  const location = useLocation();
   
   useEffect(() => {
-    const checkAuth = async () => {
-      const { data } = await supabase.auth.getSession();
-      setIsAuthenticated(!!data.session);
-      setIsLoading(false);
-    };
-    
-    checkAuth();
-    
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setIsAuthenticated(!!session);
-    });
-    
-    return () => subscription.unsubscribe();
-  }, []);
+    // Mark authentication as checked after the first verification
+    if (!loading) {
+      setAuthChecked(true);
+    }
+  }, [loading]);
 
-  if (isLoading) {
-    return <div className="flex h-screen items-center justify-center">Loading...</div>;
+  // Show loading state
+  if (loading || !authChecked) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="h-12 w-12 mx-auto border-4 border-t-blue-600 border-gray-200 rounded-full animate-spin"></div>
+          <p className="mt-4">Loading...</p>
+        </div>
+      </div>
+    );
   }
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+  // Check authentication and role requirements
+  if (!user) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
-
+  
+  if (requireAdmin && !isAdmin) {
+    toast.error("You don't have admin access");
+    return <Navigate to="/dashboard" replace />;
+  }
+  
+  if (requireVendor && !isVendor) {
+    toast.error("You don't have vendor access");
+    return <Navigate to="/dashboard" replace />;
+  }
+  
   return <>{children}</>;
 };
 

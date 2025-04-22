@@ -24,9 +24,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isVendor, setIsVendor] = useState(false);
-  const navigate = useNavigate();
 
   useEffect(() => {
+    console.log('Setting up auth state listener');
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
@@ -36,7 +36,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         // When auth state changes, check user role
         if (session?.user) {
-          checkUserRole(session.user.id);
+          setTimeout(() => {
+            checkUserRole(session.user.id);
+          }, 0);
         } else {
           setIsAdmin(false);
           setIsVendor(false);
@@ -58,11 +60,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
-  }, [navigate]);
+    return () => {
+      console.log('Cleaning up auth subscription');
+      subscription.unsubscribe();
+    };
+  }, []);
 
   const checkUserRole = async (userId: string) => {
     try {
+      console.log('Checking user role for:', userId);
       // Check if admin
       const { data: adminData, error: adminError } = await supabase
         .from('users')
@@ -76,6 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       
       if (adminData?.role === 'admin') {
+        console.log('User is an admin');
         setIsAdmin(true);
         setIsVendor(false);
         return;
@@ -86,16 +93,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .from('vendors')
         .select('id')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
       
-      if (vendorError && vendorError.code !== 'PGRST116') { // PGRST116 = not found
+      if (vendorError) {
         console.error('Error checking vendor role:', vendorError);
       }
       
       if (vendorData) {
+        console.log('User is a vendor');
         setIsVendor(true);
         setIsAdmin(false);
       } else {
+        console.log('User is a regular user');
         setIsVendor(false);
         setIsAdmin(false);
       }
@@ -108,13 +117,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
+      console.log('Signing in user:', email);
       const { error, data } = await supabase.auth.signInWithPassword({
         email,
         password
       });
       
       if (!error && data.user) {
+        console.log('Sign in successful:', data.user.id);
         toast.success('Signed in successfully');
+      } else {
+        console.error('Sign in error:', error);
       }
       
       return { error };
@@ -126,6 +139,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signUp = async (email: string, password: string, name: string, phone: string) => {
     try {
+      console.log('Signing up user:', email);
       const { error: authError, data } = await supabase.auth.signUp({
         email,
         password,
@@ -138,6 +152,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       
       if (!authError && data.user) {
+        console.log('Auth signup successful:', data.user.id);
         // Create user profile record
         const { error: profileError } = await supabase
           .from('users')
@@ -154,7 +169,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return { error: profileError };
         }
         
+        console.log('User profile created successfully');
         toast.success('Account created successfully');
+      } else {
+        console.error('Signup error:', authError);
       }
       
       return { error: authError };
@@ -166,8 +184,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     try {
+      console.log('Signing out user');
       await supabase.auth.signOut();
-      navigate('/login');
       toast.info('Signed out successfully');
     } catch (err) {
       console.error('Error signing out:', err);
@@ -199,54 +217,4 @@ export const useAuth = () => {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-};
-
-// Simple auth guard hook
-export const useRequireAuth = (redirectTo = '/login') => {
-  const { user, loading } = useAuth();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (!loading && !user) {
-      navigate(redirectTo);
-    }
-  }, [user, loading, navigate, redirectTo]);
-
-  return { user, loading };
-};
-
-// Admin guard hook
-export const useRequireAdmin = (redirectTo = '/') => {
-  const { user, loading, isAdmin } = useAuth();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (!loading) {
-      if (!user) {
-        navigate('/login');
-      } else if (!isAdmin) {
-        navigate(redirectTo);
-      }
-    }
-  }, [user, isAdmin, loading, navigate, redirectTo]);
-
-  return { user, loading, isAdmin };
-};
-
-// Vendor guard hook
-export const useRequireVendor = (redirectTo = '/') => {
-  const { user, loading, isVendor } = useAuth();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (!loading) {
-      if (!user) {
-        navigate('/login');
-      } else if (!isVendor) {
-        navigate(redirectTo);
-      }
-    }
-  }, [user, isVendor, loading, navigate, redirectTo]);
-
-  return { user, loading, isVendor };
 };

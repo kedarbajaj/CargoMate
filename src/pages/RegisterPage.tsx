@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/form';
 import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
+import { Loader2 } from 'lucide-react';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters' }),
@@ -31,8 +31,15 @@ const formSchema = z.object({
 
 const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
-  const { signUp } = useAuth();
+  const { signUp, user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      navigate('/dashboard');
+    }
+  }, [user, navigate]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -48,6 +55,7 @@ const RegisterPage: React.FC = () => {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
     try {
+      console.log('Attempting to register with:', values.email);
       const { error } = await signUp(
         values.email, 
         values.password, 
@@ -56,6 +64,7 @@ const RegisterPage: React.FC = () => {
       );
       
       if (error) {
+        console.error('Registration error:', error);
         toast.error('Registration failed', {
           description: error.message || 'Please try again with different credentials',
         });
@@ -66,10 +75,10 @@ const RegisterPage: React.FC = () => {
         navigate('/login');
       }
     } catch (err: any) {
+      console.error('Unexpected error during registration:', err);
       toast.error('An unexpected error occurred', {
         description: err.message || 'Please try again later',
       });
-      console.error(err);
     } finally {
       setIsLoading(false);
     }
@@ -160,9 +169,16 @@ const RegisterPage: React.FC = () => {
                 type="submit"
                 className="w-full"
                 disabled={isLoading}
-                variant="cargomate"
+                variant="default"
               >
-                {isLoading ? 'Creating account...' : 'Sign up'}
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Creating account...
+                  </>
+                ) : (
+                  'Sign up'
+                )}
               </Button>
             </div>
           </form>
@@ -171,7 +187,7 @@ const RegisterPage: React.FC = () => {
         <div className="mt-6 text-center">
           <p>
             Already have an account?{' '}
-            <Link to="/login" className="font-medium text-cargomate-600 hover:text-cargomate-500">
+            <Link to="/login" className="font-medium text-blue-600 hover:text-blue-500">
               Sign in
             </Link>
           </p>
