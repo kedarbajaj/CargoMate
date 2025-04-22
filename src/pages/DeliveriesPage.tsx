@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
@@ -17,7 +16,6 @@ interface Delivery {
   weight_kg: number;
 }
 
-// Interface for icon props
 interface IconProps {
   className?: string;
 }
@@ -203,6 +201,14 @@ const StatusFilterButton = ({ status, currentFilter, onClick, label }: StatusFil
   >
     {label}
   </Button>
+);
+
+const MapIcon = ({ className }: IconProps) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <polygon points="3 7 9 4 15 7 21 4 21 17 15 20 9 17 3 20" />
+    <line x1="9" y1="4" x2="9" y2="17" />
+    <line x1="15" y1="7" x2="15" y2="20" />
+  </svg>
 );
 
 const truncateAddress = (address?: string) => {

@@ -108,7 +108,7 @@ const NewDeliveryPage: React.FC = () => {
       const userNotification = {
         user_id: user.id,
         message: `Your delivery from ${values.pickup_address} to ${values.drop_address} has been scheduled.`,
-        status: 'unread' as 'unread' | 'read',
+        status: 'unread' as const,
       };
 
       await supabase.from('notifications').insert(userNotification);
@@ -116,18 +116,20 @@ const NewDeliveryPage: React.FC = () => {
       const vendorNotification = {
         user_id: selectedVendor,
         message: `New delivery request: Pickup from ${values.pickup_address} to ${values.drop_address}.`,
-        status: 'unread' as 'unread' | 'read',
+        status: 'unread' as const,
       };
 
       await supabase.from('notifications').insert(vendorNotification);
 
-      await supabase.functions.invoke('send-delivery-emails', {
-        body: {
-          delivery: data?.[0],
-          vendor_id: selectedVendor,
-          user_id: user.id
-        }
-      });
+      if (data?.[0]) {
+        await supabase.functions.invoke('send-delivery-emails', {
+          body: {
+            delivery: data[0],
+            vendor_id: selectedVendor,
+            user_id: user.id
+          }
+        });
+      }
 
       toast.success('Delivery scheduled successfully!');
       navigate('/deliveries');
