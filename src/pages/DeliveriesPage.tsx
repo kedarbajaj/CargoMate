@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
@@ -14,6 +15,11 @@ interface Delivery {
   scheduled_date: string;
   created_at: string;
   weight_kg: number;
+}
+
+// Interface for icon props
+interface IconProps {
+  className?: string;
 }
 
 const DeliveriesPage: React.FC = () => {
@@ -82,7 +88,7 @@ const DeliveriesPage: React.FC = () => {
         <h1 className="text-2xl font-bold">Your Deliveries</h1>
         <Link to="/deliveries/new">
           <Button variant="cargomate">
-            <PlusIcon />
+            <PlusIcon className="mr-2 h-4 w-4" />
             New Delivery
           </Button>
         </Link>
@@ -208,15 +214,15 @@ const formatStatus = (status: string) => {
   return status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ');
 };
 
-const PlusIcon: React.FC = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 h-4 w-4">
+const PlusIcon: React.FC<IconProps> = ({ className }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className || "mr-2 h-4 w-4"}>
     <path d="M12 5v14" />
     <path d="M5 12h14" />
   </svg>
 );
 
-const PackageIcon: React.FC = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
+const PackageIcon: React.FC<IconProps> = ({ className }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className || "h-5 w-5"}>
     <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" />
     <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" />
     <path d="M7 21h10" />

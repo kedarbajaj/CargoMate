@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -35,8 +36,8 @@ interface TrackingUpdate {
   updated_at: string;
 }
 
-type DeliveryStatus = Database['public']['Enums']['delivery_status'];
-type TrackingUpdateStatus = Database['public']['Enums']['delivery_update_status'];
+type DeliveryStatus = "pending" | "in_transit" | "delivered" | "cancelled";
+type TrackingUpdateStatus = "Dispatched" | "In Transit" | "Delivered";
 
 const DeliveryDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -285,7 +286,7 @@ const DeliveryDetailsPage: React.FC = () => {
                   <div className="flex flex-col space-y-2 sm:flex-row sm:space-x-2 sm:space-y-0">
                     <Button
                       variant="cargoAccept"
-                      onClick={() => handleStatusUpdate('accepted')}
+                      onClick={() => handleStatusUpdate('in_transit')}
                       disabled={actionLoading}
                       className="flex-1"
                     >
@@ -298,22 +299,6 @@ const DeliveryDetailsPage: React.FC = () => {
                       className="flex-1"
                     >
                       Reject Delivery
-                    </Button>
-                  </div>
-                </div>
-              )}
-              
-              {isVendor && user?.id === delivery.vendor_id && delivery.status === 'accepted' && (
-                <div className="mt-6 space-y-3">
-                  <h3 className="font-medium">Update Status</h3>
-                  <div className="flex flex-col space-y-2 sm:flex-row sm:space-x-2 sm:space-y-0">
-                    <Button
-                      variant="cargomate"
-                      onClick={() => handleStatusUpdate('in_transit')}
-                      disabled={actionLoading}
-                      className="flex-1"
-                    >
-                      Mark as In Transit
                     </Button>
                   </div>
                 </div>
