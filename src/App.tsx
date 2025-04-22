@@ -1,7 +1,8 @@
-import React from 'react';
+
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'sonner';
-import { AuthProvider, useAuth } from './lib/auth';
+import { AuthProvider } from './lib/auth';
 import MainLayout from './components/MainLayout';
 
 // Auth Pages
@@ -19,23 +20,28 @@ import AdminDashboardPage from './pages/AdminDashboardPage';
 import TrackingPage from './pages/TrackingPage';
 import PaymentsPage from './pages/PaymentsPage';
 import ProfilePage from './pages/ProfilePage';
+import { supabase } from './integrations/supabase/client';
 
-// Protected Route Component
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading } = useAuth();
-
-  if (loading) {
-    return <div className="flex h-screen items-center justify-center">Loading...</div>;
-  }
-
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
-
-  return <>{children}</>;
-};
-
+// App component with the router configuration
 const App: React.FC = () => {
+  // Log Supabase configuration on init to verify it's properly set up
+  useEffect(() => {
+    const checkSupabaseConnection = async () => {
+      try {
+        const { error } = await supabase.from('users').select('id').limit(1);
+        if (error) {
+          console.error('Supabase connection test failed:', error);
+        } else {
+          console.log('Supabase connection successful');
+        }
+      } catch (err) {
+        console.error('Error testing Supabase connection:', err);
+      }
+    };
+    
+    checkSupabaseConnection();
+  }, []);
+  
   return (
     <Router>
       <AuthProvider>
@@ -126,6 +132,38 @@ const App: React.FC = () => {
       </AuthProvider>
     </Router>
   );
+};
+
+// Protected Route Component
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      setIsAuthenticated(!!data.session);
+      setIsLoading(false);
+    };
+    
+    checkAuth();
+    
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setIsAuthenticated(!!session);
+    });
+    
+    return () => subscription.unsubscribe();
+  }, []);
+
+  if (isLoading) {
+    return <div className="flex h-screen items-center justify-center">Loading...</div>;
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return <>{children}</>;
 };
 
 export default App;
