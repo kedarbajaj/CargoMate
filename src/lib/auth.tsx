@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -166,17 +167,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       if (!authError && data.user) {
+        // Changed from onConflict to upsert to fix the TypeScript error
+        // The upsert method is the preferred way in newer Supabase versions
         await supabase
           .from('users')
-          .insert({
+          .upsert({
             id: data.user.id,
             email,
             name,
             phone,
             role: 'user'
-          })
-          .onConflict('id')
-          .merge(); // upsert so profile is always consistent
+          }, { 
+            onConflict: 'id' 
+          });
       }
       return { error: authError };
     } catch (err: any) {
