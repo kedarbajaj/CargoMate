@@ -167,8 +167,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       if (!authError && data.user) {
-        // Changed from onConflict to upsert to fix the TypeScript error
-        // The upsert method is the preferred way in newer Supabase versions
+        // Use upsert instead of onConflict to fix the TypeScript error
         await supabase
           .from('users')
           .upsert({
@@ -180,11 +179,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }, { 
             onConflict: 'id' 
           });
+          
+        // Send welcome email - in production would be triggered by a database trigger
+        await sendWelcomeEmail(email, name, 'user');
       }
       return { error: authError };
     } catch (err: any) {
       return { error: err };
     }
+  };
+
+  const sendWelcomeEmail = async (email: string, name: string, role: string) => {
+    // In a real app, this would call a serverless function to send an email
+    console.log(`Welcome email would be sent to ${email} for ${name} with role ${role}`);
+    // For demo purposes we'll just show a toast
+    toast.success(`Welcome email sent to ${email}!`, {
+      description: `Welcome to CargoMate, ${name}! Your account has been created successfully as a ${role}.`,
+    });
   };
 
   const signOut = async () => {

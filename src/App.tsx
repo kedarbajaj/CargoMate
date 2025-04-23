@@ -4,6 +4,9 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'r
 import { Toaster, toast } from 'sonner';
 import { AuthProvider, useAuth } from './lib/auth';
 import MainLayout from './components/MainLayout';
+import './lib/i18n'; // Import i18n configuration
+import { useTranslation } from 'react-i18next';
+import html2pdf from 'html2pdf.js';
 
 // Auth Pages
 import LoginPage from './pages/LoginPage';
@@ -24,6 +27,8 @@ import { supabase } from './integrations/supabase/client';
 
 // App component with the router configuration
 const App: React.FC = () => {
+  const { t } = useTranslation();
+  
   // Log Supabase configuration on init to verify it's properly set up
   useEffect(() => {
     const checkSupabaseConnection = async () => {
@@ -145,6 +150,7 @@ const ProtectedRoute = ({ children, requireAdmin = false, requireVendor = false 
   const { user, loading, isAdmin, isVendor } = useAuth();
   const [authChecked, setAuthChecked] = useState(false);
   const location = useLocation();
+  const { t } = useTranslation();
   
   useEffect(() => {
     // Mark authentication as checked after the first verification
@@ -158,8 +164,8 @@ const ProtectedRoute = ({ children, requireAdmin = false, requireVendor = false 
     return (
       <div className="flex h-screen items-center justify-center">
         <div className="text-center">
-          <div className="h-12 w-12 mx-auto border-4 border-t-blue-600 border-gray-200 rounded-full animate-spin"></div>
-          <p className="mt-4">Loading...</p>
+          <div className="h-12 w-12 mx-auto border-4 border-t-primary border-muted rounded-full animate-spin"></div>
+          <p className="mt-4">{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -171,12 +177,12 @@ const ProtectedRoute = ({ children, requireAdmin = false, requireVendor = false 
   }
   
   if (requireAdmin && !isAdmin) {
-    toast.error("You don't have admin access");
+    toast.error(t("You don't have admin access"));
     return <Navigate to="/dashboard" replace />;
   }
   
   if (requireVendor && !isVendor) {
-    toast.error("You don't have vendor access");
+    toast.error(t("You don't have vendor access"));
     return <Navigate to="/dashboard" replace />;
   }
   

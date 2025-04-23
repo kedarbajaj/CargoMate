@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -16,6 +17,8 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { sendDeliveryConfirmation } from '@/lib/email';
 
 const formSchema = z.object({
   pickup_address: z.string().min(5, { message: 'Pickup address is required' }),
@@ -31,7 +34,6 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-// No more vendor or date
 const NewDeliveryPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -64,7 +66,8 @@ const NewDeliveryPage: React.FC = () => {
           weight_kg: values.weight_kg,
           user_id: user.id,
           status: 'pending',
-          // Optionally you can store package_type as part of delivery details (as a JSON field or in future migration)
+          // Store package_type as part of the payload
+          package_type: values.package_type
         })
         .select();
 
@@ -72,6 +75,10 @@ const NewDeliveryPage: React.FC = () => {
 
       if (data?.[0]) {
         toast.success('Delivery scheduled successfully!');
+        
+        // Send confirmation email
+        await sendDeliveryConfirmation(user.id, data[0].id, values.package_type);
+        
         navigate('/deliveries');
       }
     } catch (error: any) {
@@ -136,24 +143,28 @@ const NewDeliveryPage: React.FC = () => {
               </FormItem>
             )}
           />
-          {/* New Package Type Dropdown */}
           <FormField
             control={form.control}
             name="package_type"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Package Type</FormLabel>
-                <FormControl>
-                  <select
-                    {...field}
-                    className="w-full border rounded p-2"
-                  >
-                    <option value="standard">Standard</option>
-                    <option value="handle_with_care">Handle with Care</option>
-                    <option value="fragile">Fragile</option>
-                    <option value="oversized">Oversized</option>
-                  </select>
-                </FormControl>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select package type" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="standard">Standard</SelectItem>
+                    <SelectItem value="handle_with_care">Handle with Care</SelectItem>
+                    <SelectItem value="fragile">Fragile</SelectItem>
+                    <SelectItem value="oversized">Oversized</SelectItem>
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}

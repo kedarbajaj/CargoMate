@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -16,7 +17,7 @@ import {
 import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
-import { RadioGroup } from "@radix-ui/react-radio-group";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 
 const formSchema = z.object({
@@ -97,11 +98,11 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-background py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
-          <h1 className="text-center text-3xl font-extrabold text-gray-900 mb-2">CargoMate</h1>
-          <h2 className="mt-6 text-center text-2xl font-bold text-gray-900">Sign in to your account</h2>
+          <h1 className="text-center text-3xl font-extrabold text-primary mb-2">CargoMate</h1>
+          <h2 className="mt-6 text-center text-2xl font-bold">Sign in to your account</h2>
         </div>
         {generalError && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
@@ -142,41 +143,26 @@ const LoginPage: React.FC = () => {
               control={form.control}
               name="loginType"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="space-y-3">
                   <FormLabel>Login as</FormLabel>
                   <FormControl>
                     <RadioGroup
-                      value={field.value}
                       onValueChange={field.onChange}
-                      className="flex gap-6 mt-2"
+                      defaultValue={field.value}
+                      className="flex gap-6"
                     >
-                      <Label>
-                        <input
-                          type="radio"
-                          value="user"
-                          checked={field.value === 'user'}
-                          onChange={() => form.setValue('loginType', 'user')}
-                          className="mr-2"
-                        /> User
-                      </Label>
-                      <Label>
-                        <input
-                          type="radio"
-                          value="vendor"
-                          checked={field.value === 'vendor'}
-                          onChange={() => form.setValue('loginType', 'vendor')}
-                          className="mr-2"
-                        /> Vendor
-                      </Label>
-                      <Label>
-                        <input
-                          type="radio"
-                          value="admin"
-                          checked={field.value === 'admin'}
-                          onChange={() => form.setValue('loginType', 'admin')}
-                          className="mr-2"
-                        /> Admin
-                      </Label>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="user" id="user" />
+                        <Label htmlFor="user">User</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="vendor" id="vendor" />
+                        <Label htmlFor="vendor">Vendor</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="admin" id="admin" />
+                        <Label htmlFor="admin">Admin</Label>
+                      </div>
                     </RadioGroup>
                   </FormControl>
                   <FormMessage />
@@ -206,7 +192,7 @@ const LoginPage: React.FC = () => {
         <div className="mt-6 text-center">
           <p>
             Don't have an account?{' '}
-            <Link to="/register" className="font-medium text-blue-600 hover:text-blue-500">
+            <Link to="/register" className="font-medium text-primary hover:text-primary/90">
               Sign up
             </Link>
           </p>

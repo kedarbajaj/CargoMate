@@ -64,16 +64,16 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				cargomate: {
-					50: '#f0f4ff',
-					100: '#e0e9fd',
-					200: '#c7d7fc',
-					300: '#a5bdf9',
-					400: '#8199f4',
-					500: '#6671ec',
-					600: '#4d4bde',
-					700: '#463cc0',
-					800: '#39349c',
-					900: '#333178',
+					50: '#FAF3E0', // Cream Latte
+					100: '#F2E8D0', // Lighter Cream
+					200: '#E2D0B3', // Light Tan
+					300: '#D2B897', // Medium Tan
+					400: '#C07C56', // Burnt Caramel
+					500: '#A86A48', // Darker Caramel
+					600: '#8A583B', // Medium Espresso
+					700: '#6F4E37', // Rich Espresso
+					800: '#533C2A', // Dark Espresso
+					900: '#3B2F2F', // Dark Cocoa
 				}
 			},
 			borderRadius: {

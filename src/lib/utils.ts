@@ -1,63 +1,64 @@
 
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
-
+ 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD'
-  }).format(amount);
-}
-
-export const formatDate = (date: string | Date) => {
-  return new Date(date).toLocaleDateString('en-US', {
-    year: 'numeric',
+export function formatDate(dateString: string | null | undefined): string {
+  if (!dateString) return 'N/A';
+  
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return 'Invalid Date';
+  
+  return new Intl.DateTimeFormat('en-IN', {
+    day: '2-digit',
     month: 'short',
-    day: 'numeric',
+    year: 'numeric',
     hour: '2-digit',
     minute: '2-digit'
-  });
+  }).format(date);
 }
 
-export const capitalizeFirstLetter = (string: string) => {
-  return string.charAt(0).toUpperCase() + string.slice(1);
+export function formatWeight(weight: number | null | undefined): string {
+  if (!weight) return '0';
+  return weight.toString();
 }
 
-export const getDeliveryStatusColor = (status: string) => {
-  switch (status) {
+export function getDeliveryStatusColor(status: string): string {
+  switch (status.toLowerCase()) {
     case 'pending':
-      return 'bg-yellow-100 text-yellow-800';
-    case 'accepted':
-      return 'bg-blue-100 text-blue-800';
+      return 'bg-amber-100 text-amber-700';
     case 'in_transit':
-      return 'bg-indigo-100 text-indigo-800';
+      return 'bg-blue-100 text-blue-700';
     case 'delivered':
-      return 'bg-green-100 text-green-800';
+      return 'bg-green-100 text-green-700';
     case 'cancelled':
-      return 'bg-red-100 text-red-800';
+      return 'bg-red-100 text-red-700';
     default:
-      return 'bg-gray-100 text-gray-800';
+      return 'bg-gray-100 text-gray-700';
   }
 }
 
-export const getPaymentStatusColor = (status: string) => {
-  switch (status) {
+export function getPaymentStatusColor(status: string): string {
+  switch (status.toLowerCase()) {
     case 'pending':
-      return 'bg-yellow-100 text-yellow-800';
+      return 'bg-amber-100 text-amber-700';
     case 'completed':
-      return 'bg-green-100 text-green-800';
+      return 'bg-green-100 text-green-700';
     case 'failed':
-      return 'bg-red-100 text-red-800';
+      return 'bg-red-100 text-red-700';
+    case 'refunded':
+      return 'bg-purple-100 text-purple-700';
     default:
-      return 'bg-gray-100 text-gray-800';
+      return 'bg-gray-100 text-gray-700';
   }
 }
 
-export const formatWeight = (weight: number) => {
-  return weight.toFixed(2);
+export function formatCurrency(amount: number, currency: string = 'USD'): string {
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: currency,
+  }).format(amount);
 }
-

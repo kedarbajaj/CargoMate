@@ -5,83 +5,83 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 20 14.3% 4.1%;
+    --background: 47 63% 93%; /* Cream Latte #FAF3E0 */
+    --foreground: 22 48% 30%; /* Rich Espresso #6F4E37 */
 
-    --card: 0 0% 100%;
-    --card-foreground: 20 14.3% 4.1%;
+    --card: 47 63% 93%; /* Cream Latte #FAF3E0 */
+    --card-foreground: 22 48% 30%; /* Rich Espresso #6F4E37 */
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 20 14.3% 4.1%;
+    --popover: 47 63% 93%; /* Cream Latte #FAF3E0 */
+    --popover-foreground: 22 48% 30%; /* Rich Espresso #6F4E37 */
 
-    --primary: 221 83% 53%;
-    --primary-foreground: 60 9.1% 97.8%;
+    --primary: 22 34% 55%; /* Burnt Caramel #C07C56 */
+    --primary-foreground: 47 63% 93%; /* Cream Latte #FAF3E0 */
 
-    --secondary: 60 4.8% 95.9%;
-    --secondary-foreground: 24 9.8% 10%;
+    --secondary: 22 48% 30%; /* Rich Espresso #6F4E37 */
+    --secondary-foreground: 47 63% 93%; /* Cream Latte #FAF3E0 */
 
-    --muted: 60 4.8% 95.9%;
-    --muted-foreground: 25 5.3% 44.7%;
+    --muted: 20 17% 21%; /* Dark Cocoa #3B2F2F with lighter opacity */
+    --muted-foreground: 22 48% 30%; /* Rich Espresso with lower opacity */
 
-    --accent: 60 4.8% 95.9%;
-    --accent-foreground: 24 9.8% 10%;
+    --accent: 22 34% 55%; /* Burnt Caramel #C07C56 with lower opacity */
+    --accent-foreground: 47 63% 93%; /* Cream Latte #FAF3E0 */
 
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 60 9.1% 97.8%;
+    --destructive-foreground: 47 63% 93%; /* Cream Latte #FAF3E0 */
 
-    --border: 20 5.9% 90%;
-    --input: 20 5.9% 90%;
-    --ring: 221 83% 53%;
+    --border: 22 34% 40%; /* Darker Burnt Caramel */
+    --input: 22 34% 40%; /* Darker Burnt Caramel */
+    --ring: 22 34% 55%; /* Burnt Caramel #C07C56 */
 
     --radius: 0.5rem;
 
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 20 14.3% 4.1%;
-    --sidebar-primary: 221 83% 53%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 211 80% 95%;
-    --sidebar-accent-foreground: 221 83% 53%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 221 83% 53%;
+    --sidebar-background: 22 48% 30%; /* Rich Espresso #6F4E37 */
+    --sidebar-foreground: 47 63% 93%; /* Cream Latte #FAF3E0 */
+    --sidebar-primary: 47 63% 93%; /* Cream Latte #FAF3E0 */
+    --sidebar-primary-foreground: 22 48% 30%; /* Rich Espresso #6F4E37 */
+    --sidebar-accent: 22 34% 55%; /* Burnt Caramel #C07C56 */
+    --sidebar-accent-foreground: 47 63% 93%; /* Cream Latte #FAF3E0 */
+    --sidebar-border: 22 34% 40%; /* Darker Burnt Caramel */
+    --sidebar-ring: 22 34% 55%; /* Burnt Caramel #C07C56 */
   }
 
   .dark {
-    --background: 20 14.3% 4.1%;
-    --foreground: 60 9.1% 97.8%;
+    --background: 20 17% 21%; /* Dark Cocoa #3B2F2F */
+    --foreground: 47 63% 93%; /* Cream Latte #FAF3E0 */
 
-    --card: 20 14.3% 4.1%;
-    --card-foreground: 60 9.1% 97.8%;
+    --card: 20 17% 21%; /* Dark Cocoa #3B2F2F */
+    --card-foreground: 47 63% 93%; /* Cream Latte #FAF3E0 */
 
-    --popover: 20 14.3% 4.1%;
-    --popover-foreground: 60 9.1% 97.8%;
+    --popover: 20 17% 21%; /* Dark Cocoa #3B2F2F */
+    --popover-foreground: 47 63% 93%; /* Cream Latte #FAF3E0 */
 
-    --primary: 221 83% 53%;
-    --primary-foreground: 60 9.1% 97.8%;
+    --primary: 22 34% 55%; /* Burnt Caramel #C07C56 */
+    --primary-foreground: 47 63% 93%; /* Cream Latte #FAF3E0 */
 
-    --secondary: 12 6.5% 15.1%;
-    --secondary-foreground: 60 9.1% 97.8%;
+    --secondary: 22 48% 30%; /* Rich Espresso #6F4E37 */
+    --secondary-foreground: 47 63% 93%; /* Cream Latte #FAF3E0 */
 
-    --muted: 12 6.5% 15.1%;
-    --muted-foreground: 24 5.4% 63.9%;
+    --muted: 22 48% 20%; /* Darker Rich Espresso */
+    --muted-foreground: 47 63% 93%; /* Cream Latte with lower opacity */
 
-    --accent: 12 6.5% 15.1%;
-    --accent-foreground: 60 9.1% 97.8%;
+    --accent: 22 34% 55%; /* Burnt Caramel #C07C56 */
+    --accent-foreground: 47 63% 93%; /* Cream Latte #FAF3E0 */
 
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 60 9.1% 97.8%;
+    --destructive-foreground: 47 63% 93%; /* Cream Latte #FAF3E0 */
 
-    --border: 12 6.5% 15.1%;
-    --input: 12 6.5% 15.1%;
-    --ring: 221 83% 53%;
+    --border: 22 34% 45%; /* Burnt Caramel variation */
+    --input: 22 34% 45%; /* Burnt Caramel variation */
+    --ring: 22 34% 55%; /* Burnt Caramel #C07C56 */
 
-    --sidebar-background: 222 47% 11%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 221 83% 53%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 217 33% 17%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 215 25% 27%;
-    --sidebar-ring: 221 83% 53%;
+    --sidebar-background: 20 17% 21%; /* Dark Cocoa #3B2F2F */
+    --sidebar-foreground: 47 63% 93%; /* Cream Latte #FAF3E0 */
+    --sidebar-primary: 22 34% 55%; /* Burnt Caramel #C07C56 */
+    --sidebar-primary-foreground: 47 63% 93%; /* Cream Latte #FAF3E0 */
+    --sidebar-accent: 22 48% 30%; /* Rich Espresso #6F4E37 */
+    --sidebar-accent-foreground: 47 63% 93%; /* Cream Latte #FAF3E0 */
+    --sidebar-border: 22 34% 40%; /* Darker Burnt Caramel */
+    --sidebar-ring: 22 34% 55%; /* Burnt Caramel #C07C56 */
   }
 }
 
