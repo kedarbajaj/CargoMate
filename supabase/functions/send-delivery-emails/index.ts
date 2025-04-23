@@ -77,12 +77,11 @@ serve(async (req) => {
       });
     }
 
-    // In a real app, you'd send actual emails here using services like SendGrid, Mailgun, or Resend
-    // For this demo, we'll simulate the email by logging it
-
     // Format the scheduled date for display
     const scheduledDate = new Date(delivery.scheduled_date).toLocaleString();
     
+    // In a real app, you'd send actual emails here using services like SendGrid, Mailgun, or Resend
+    // For this demo, we'll simulate the email by logging it
     console.log('Sending email to user:', userData.email);
     console.log('User email content:', `
       Hello ${userData.name},

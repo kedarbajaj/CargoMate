@@ -14,6 +14,7 @@ type AuthContextType = {
   signOut: () => Promise<void>;
   isAdmin: boolean;
   isVendor: boolean;
+  userProfile: { name: string; email: string; phone: string; role: string } | null;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -24,9 +25,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isVendor, setIsVendor] = useState(false);
+  const [userProfile, setUserProfile] = useState<{ name: string; email: string; phone: string; role: string } | null>(null);
 
   useEffect(() => {
     console.log('Setting up auth state listener');
+    
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
@@ -37,11 +40,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // When auth state changes, check user role
         if (session?.user) {
           setTimeout(() => {
-            checkUserRole(session.user.id);
+            checkUserRoleAndProfile(session.user.id);
           }, 0);
         } else {
           setIsAdmin(false);
           setIsVendor(false);
+          setUserProfile(null);
         }
       }
     );
@@ -54,7 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       // Check user role on initial load
       if (session?.user) {
-        checkUserRole(session.user.id);
+        checkUserRoleAndProfile(session.user.id);
       }
       
       setLoading(false);
@@ -66,22 +70,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const checkUserRole = async (userId: string) => {
+  const checkUserRoleAndProfile = async (userId: string) => {
     try {
       console.log('Checking user role for:', userId);
-      // Check if admin
-      const { data: adminData, error: adminError } = await supabase
+      
+      // Fetch user profile data
+      const { data: userData, error: userError } = await supabase
         .from('users')
-        .select('role')
+        .select('name, email, phone, role')
         .eq('id', userId)
         .single();
       
-      if (adminError) {
-        console.error('Error checking admin role:', adminError);
+      if (userError) {
+        console.error('Error checking user profile:', userError);
         return;
       }
       
-      if (adminData?.role === 'admin') {
+      // Set the user profile
+      setUserProfile(userData);
+      
+      // Check if admin
+      if (userData?.role === 'admin') {
         console.log('User is an admin');
         setIsAdmin(true);
         setIsVendor(false);
@@ -91,7 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Check if vendor
       const { data: vendorData, error: vendorError } = await supabase
         .from('vendors')
-        .select('id')
+        .select('id, company_name')
         .eq('id', userId)
         .maybeSingle();
       
@@ -100,7 +109,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       
       if (vendorData) {
-        console.log('User is a vendor');
+        console.log('User is a vendor:', vendorData.company_name);
         setIsVendor(true);
         setIsAdmin(false);
       } else {
@@ -147,12 +156,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           data: {
             name,
             phone
-          }
+          },
+          emailRedirectTo: `${window.location.origin}/login`
         }
       });
       
       if (!authError && data.user) {
         console.log('Auth signup successful:', data.user.id);
+        
         // Create user profile record
         const { error: profileError } = await supabase
           .from('users')
@@ -161,7 +172,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             email,
             name,
             phone,
-            role: 'user'
+            role: 'user' // Default role, can be updated later
           });
           
         if (profileError) {
@@ -201,7 +212,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signUp,
     signOut,
     isAdmin,
-    isVendor
+    isVendor,
+    userProfile
   };
 
   return (

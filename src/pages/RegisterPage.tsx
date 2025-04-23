@@ -17,6 +17,7 @@ import {
 import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters' }),
@@ -24,10 +25,24 @@ const formSchema = z.object({
   phone: z.string().min(5, { message: 'Please enter a valid phone number' }),
   password: z.string().min(6, { message: 'Password must be at least 6 characters' }),
   confirmPassword: z.string(),
+  role: z.enum(['user', 'vendor', 'admin'], { message: 'Please select a role' }),
+  companyName: z.string().optional(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
-});
+}).refine(
+  (data) => {
+    // If role is vendor, company name is required
+    if (data.role === 'vendor') {
+      return !!data.companyName && data.companyName.length >= 2;
+    }
+    return true;
+  },
+  {
+    message: "Company name is required for vendors",
+    path: ["companyName"],
+  }
+);
 
 const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
@@ -49,8 +64,12 @@ const RegisterPage: React.FC = () => {
       phone: '',
       password: '',
       confirmPassword: '',
+      role: 'user',
+      companyName: '',
     },
   });
+  
+  const selectedRole = form.watch('role');
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
@@ -68,12 +87,50 @@ const RegisterPage: React.FC = () => {
         toast.error('Registration failed', {
           description: error.message || 'Please try again with different credentials',
         });
-      } else {
-        toast.success('Registration successful', {
-          description: 'You can now log in with your credentials',
-        });
-        navigate('/login');
+        setIsLoading(false);
+        return;
       }
+      
+      // After basic signup, update the user's role and other details
+      if (values.role !== 'user') {
+        const { data: userData } = await supabase.auth.getUser();
+        if (userData?.user) {
+          const userId = userData.user.id;
+          
+          // Update user role
+          const { error: roleError } = await supabase
+            .from('users')
+            .update({ role: values.role })
+            .eq('id', userId);
+          
+          if (roleError) {
+            console.error('Error setting user role:', roleError);
+            toast.error('Error setting user role');
+          }
+          
+          // If vendor, create vendor record
+          if (values.role === 'vendor' && values.companyName) {
+            const { error: vendorError } = await supabase
+              .from('vendors')
+              .insert({
+                id: userId,
+                company_name: values.companyName,
+                email: values.email,
+                phone: values.phone
+              });
+            
+            if (vendorError) {
+              console.error('Error creating vendor profile:', vendorError);
+              toast.error('Error creating vendor profile');
+            }
+          }
+        }
+      }
+
+      toast.success('Registration successful', {
+        description: 'You can now log in with your credentials',
+      });
+      navigate('/login');
     } catch (err: any) {
       console.error('Unexpected error during registration:', err);
       toast.error('An unexpected error occurred', {
@@ -163,6 +220,59 @@ const RegisterPage: React.FC = () => {
                 </FormItem>
               )}
             />
+            
+            <FormField
+              control={form.control}
+              name="role"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Account Type</FormLabel>
+                  <div className="grid grid-cols-3 gap-2">
+                    <Button
+                      type="button"
+                      variant={field.value === 'user' ? 'default' : 'outline'}
+                      className="w-full"
+                      onClick={() => form.setValue('role', 'user')}
+                    >
+                      User
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={field.value === 'vendor' ? 'default' : 'outline'}
+                      className="w-full"
+                      onClick={() => form.setValue('role', 'vendor')}
+                    >
+                      Vendor
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={field.value === 'admin' ? 'default' : 'outline'}
+                      className="w-full"
+                      onClick={() => form.setValue('role', 'admin')}
+                    >
+                      Admin
+                    </Button>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            {selectedRole === 'vendor' && (
+              <FormField
+                control={form.control}
+                name="companyName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Company Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Acme Shipping Co." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
             
             <div>
               <Button

@@ -22,6 +22,8 @@ const profileFormSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters' }),
   email: z.string().email({ message: 'Please enter a valid email address' }).optional(),
   phone: z.string().min(5, { message: 'Please enter a valid phone number' }),
+  role: z.string().optional(),
+  companyName: z.string().optional(),
 });
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
@@ -39,10 +41,11 @@ const passwordFormSchema = z.object({
 type PasswordFormValues = z.infer<typeof passwordFormSchema>;
 
 const ProfilePage: React.FC = () => {
-  const { user } = useAuth();
+  const { user, userProfile, isVendor } = useAuth();
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
+  const [vendorData, setVendorData] = useState<any>(null);
 
   const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -50,6 +53,8 @@ const ProfilePage: React.FC = () => {
       name: '',
       email: '',
       phone: '',
+      role: '',
+      companyName: '',
     },
   });
 
@@ -68,21 +73,60 @@ const ProfilePage: React.FC = () => {
 
       setLoading(true);
       try {
-        // Fetch user profile
-        const { data, error } = await supabase
-          .from('users')
-          .select('name, email, phone')
-          .eq('id', user.id)
-          .single();
+        // If we already have userProfile from auth context, use that
+        if (userProfile) {
+          profileForm.reset({
+            name: userProfile.name || '',
+            email: userProfile.email || '',
+            phone: userProfile.phone || '',
+            role: userProfile.role || '',
+          });
+          
+          // If user is a vendor, fetch vendor data
+          if (isVendor) {
+            const { data: vendorInfo, error } = await supabase
+              .from('vendors')
+              .select('company_name')
+              .eq('id', user.id)
+              .single();
+            
+            if (!error && vendorInfo) {
+              setVendorData(vendorInfo);
+              profileForm.setValue('companyName', vendorInfo.company_name || '');
+            }
+          }
+        } else {
+          // If not, fetch from database
+          const { data, error } = await supabase
+            .from('users')
+            .select('name, email, phone, role')
+            .eq('id', user.id)
+            .single();
 
-        if (error) throw error;
+          if (error) throw error;
 
-        // Set form values
-        profileForm.reset({
-          name: data.name || '',
-          email: data.email || '',
-          phone: data.phone || '',
-        });
+          // Set form values
+          profileForm.reset({
+            name: data.name || '',
+            email: data.email || '',
+            phone: data.phone || '',
+            role: data.role || '',
+          });
+          
+          // Check if user is a vendor
+          if (data.role === 'vendor') {
+            const { data: vendorInfo, error } = await supabase
+              .from('vendors')
+              .select('company_name')
+              .eq('id', user.id)
+              .single();
+            
+            if (!error && vendorInfo) {
+              setVendorData(vendorInfo);
+              profileForm.setValue('companyName', vendorInfo.company_name || '');
+            }
+          }
+        }
       } catch (error) {
         console.error('Error fetching profile:', error);
         toast.error('Failed to load profile information');
@@ -92,7 +136,7 @@ const ProfilePage: React.FC = () => {
     };
 
     fetchUserProfile();
-  }, [user, profileForm]);
+  }, [user, userProfile, isVendor, profileForm]);
 
   const onUpdateProfile = async (values: ProfileFormValues) => {
     if (!user) return;
@@ -109,6 +153,18 @@ const ProfilePage: React.FC = () => {
         .eq('id', user.id);
 
       if (error) throw error;
+      
+      // If vendor, update company name
+      if (isVendor && values.companyName) {
+        const { error: vendorError } = await supabase
+          .from('vendors')
+          .update({
+            company_name: values.companyName,
+          })
+          .eq('id', user.id);
+          
+        if (vendorError) throw vendorError;
+      }
 
       // If email changed, update auth email
       if (values.email && values.email !== user.email) {
@@ -221,6 +277,36 @@ const ProfilePage: React.FC = () => {
                 </FormItem>
               )}
             />
+
+            <FormField
+              control={profileForm.control}
+              name="role"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Account Type</FormLabel>
+                  <FormControl>
+                    <Input {...field} disabled={true} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            {isVendor && (
+              <FormField
+                control={profileForm.control}
+                name="companyName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Company Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Acme Shipping Co." {...field} disabled={loading} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             <Button
               type="submit"

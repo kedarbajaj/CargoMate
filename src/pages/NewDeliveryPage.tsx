@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -37,7 +38,7 @@ interface Vendor {
 
 const NewDeliveryPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, userProfile } = useAuth();
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [selectedVendor, setSelectedVendor] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -105,23 +106,8 @@ const NewDeliveryPage: React.FC = () => {
 
       if (error) throw error;
 
-      const userNotification = {
-        user_id: user.id,
-        message: `Your delivery from ${values.pickup_address} to ${values.drop_address} has been scheduled.`,
-        status: 'unread' as const,
-      };
-
-      await supabase.from('notifications').insert(userNotification);
-      
-      const vendorNotification = {
-        user_id: selectedVendor,
-        message: `New delivery request: Pickup from ${values.pickup_address} to ${values.drop_address}.`,
-        status: 'unread' as const,
-      };
-
-      await supabase.from('notifications').insert(vendorNotification);
-
       if (data?.[0]) {
+        // Send email notifications
         await supabase.functions.invoke('send-delivery-emails', {
           body: {
             delivery: data[0],
@@ -129,6 +115,38 @@ const NewDeliveryPage: React.FC = () => {
             user_id: user.id
           }
         });
+
+        // Create notifications
+        const userNotification = {
+          user_id: user.id,
+          message: `Your delivery from ${values.pickup_address} to ${values.drop_address} has been scheduled.`,
+          status: 'unread' as const,
+        };
+
+        await supabase.from('notifications').insert(userNotification);
+        
+        const vendorNotification = {
+          user_id: selectedVendor,
+          message: `New delivery request: Pickup from ${values.pickup_address} to ${values.drop_address}.`,
+          status: 'unread' as const,
+        };
+
+        await supabase.from('notifications').insert(vendorNotification);
+        
+        // Create payment record (pending)
+        // Calculate simple price based on weight
+        const pricePerKg = 5; // $5 per kg
+        const amount = Number(values.weight_kg) * pricePerKg;
+        
+        await supabase
+          .from('payments')
+          .insert({
+            delivery_id: data[0].id,
+            user_id: user.id,
+            amount,
+            payment_method: 'credit_card',
+            status: 'pending'
+          });
       }
 
       toast.success('Delivery scheduled successfully!');
@@ -223,8 +241,8 @@ const NewDeliveryPage: React.FC = () => {
                     key={vendor.id}
                     className={`cursor-pointer rounded-md border p-3 transition-colors ${
                       selectedVendor === vendor.id
-                        ? 'border-cargomate-500 bg-cargomate-50'
-                        : 'hover:border-cargomate-300'
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'hover:border-blue-300'
                     }`}
                     onClick={() => setSelectedVendor(vendor.id)}
                   >
@@ -236,7 +254,7 @@ const NewDeliveryPage: React.FC = () => {
                       <div
                         className={`h-4 w-4 rounded-full border ${
                           selectedVendor === vendor.id
-                            ? 'border-cargomate-500 bg-cargomate-500'
+                            ? 'border-blue-500 bg-blue-500'
                             : 'border-gray-300'
                         }`}
                       ></div>
@@ -259,7 +277,7 @@ const NewDeliveryPage: React.FC = () => {
           <Button
             type="submit"
             className="w-full"
-            variant="cargomate"
+            variant="default"
             disabled={isSubmitting || vendors.length === 0}
           >
             {isSubmitting ? 'Scheduling...' : 'Schedule Delivery'}
