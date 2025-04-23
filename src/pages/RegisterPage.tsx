@@ -124,6 +124,27 @@ const RegisterPage: React.FC = () => {
               toast.error('Error creating vendor profile');
             }
           }
+          
+          // Send welcome email based on role
+          try {
+            const template_type = values.role === 'admin' 
+              ? 'welcome_admin' 
+              : values.role === 'vendor' 
+                ? 'welcome_vendor' 
+                : 'welcome_user';
+                
+            await supabase.functions.invoke('send-welcome-email', {
+              body: {
+                user_id: userId,
+                template_type
+              }
+            });
+            
+            console.log(`Welcome email sent for role: ${values.role}`);
+          } catch (emailError) {
+            console.error('Error sending welcome email:', emailError);
+            // Non-critical error, continue registration process
+          }
         }
       }
 
