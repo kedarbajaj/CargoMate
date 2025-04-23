@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -32,7 +31,6 @@ const formSchema = z.object({
   path: ["confirmPassword"],
 }).refine(
   (data) => {
-    // If role is vendor, company name is required
     if (data.role === 'vendor') {
       return !!data.companyName && data.companyName.length >= 2;
     }
@@ -49,7 +47,6 @@ const RegisterPage: React.FC = () => {
   const { signUp, user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
-  // Redirect if already logged in
   useEffect(() => {
     if (user) {
       navigate('/dashboard');
@@ -91,67 +88,34 @@ const RegisterPage: React.FC = () => {
         return;
       }
       
-      // After basic signup, update the user's role and other details
-      if (values.role !== 'user') {
-        const { data: userData } = await supabase.auth.getUser();
-        if (userData?.user) {
-          const userId = userData.user.id;
-          
-          // Update user role
-          const { error: roleError } = await supabase
-            .from('users')
-            .update({ role: values.role })
-            .eq('id', userId);
-          
-          if (roleError) {
-            console.error('Error setting user role:', roleError);
-            toast.error('Error setting user role');
-          }
-          
-          // If vendor, create vendor record
-          if (values.role === 'vendor' && values.companyName) {
-            const { error: vendorError } = await supabase
-              .from('vendors')
-              .insert({
-                id: userId,
-                company_name: values.companyName,
-                email: values.email,
-                phone: values.phone
-              });
-            
-            if (vendorError) {
-              console.error('Error creating vendor profile:', vendorError);
-              toast.error('Error creating vendor profile');
-            }
-          }
-          
-          // Send welcome email based on role
-          try {
-            const template_type = values.role === 'admin' 
-              ? 'welcome_admin' 
-              : values.role === 'vendor' 
-                ? 'welcome_vendor' 
-                : 'welcome_user';
-                
-            await supabase.functions.invoke('send-welcome-email', {
-              body: {
-                user_id: userId,
-                template_type
-              }
-            });
-            
-            console.log(`Welcome email sent for role: ${values.role}`);
-          } catch (emailError) {
-            console.error('Error sending welcome email:', emailError);
-            // Non-critical error, continue registration process
-          }
-        }
-      }
+      const { data: userData } = await supabase.auth.getUser();
+      if (userData?.user) {
+        const userId = userData.user.id;
 
-      toast.success('Registration successful', {
-        description: 'You can now log in with your credentials',
-      });
-      navigate('/login');
+        await supabase
+          .from('users')
+          .update({ role: values.role, name: values.name, phone: values.phone, email: values.email })
+          .eq('id', userId);
+
+        if (values.role === 'vendor' && values.companyName) {
+          await supabase
+            .from('vendors')
+            .insert({
+              id: userId,
+              company_name: values.companyName,
+              email: values.email,
+              phone: values.phone
+            });
+        }
+
+        toast.success('Welcome to CargoMate! Registration successful.', {
+          description: 'You can now log in to your account.',
+        });
+
+        setTimeout(() => {
+          navigate('/login');
+        }, 1200);
+      }
     } catch (err: any) {
       console.error('Unexpected error during registration:', err);
       toast.error('An unexpected error occurred', {

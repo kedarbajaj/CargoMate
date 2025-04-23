@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -125,9 +124,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
-      console.log('Signing in user:', email);
-      
-      // Validate email format first
       const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
       if (!emailRegex.test(email)) {
         return { 
@@ -137,31 +133,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         };
       }
-      
-      const { error, data } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
-      
-      if (!error && data.user) {
-        console.log('Sign in successful:', data.user.id);
-        toast.success('Signed in successfully');
-      } else {
-        console.error('Sign in error:', error);
-      }
-      
+      const { error, data } = await supabase.auth.signInWithPassword({ email, password });
       return { error };
     } catch (err: any) {
-      console.error('Error in signIn:', err);
       return { error: err };
     }
   };
 
   const signUp = async (email: string, password: string, name: string, phone: string) => {
     try {
-      console.log('Signing up user:', email);
-      
-      // Validate email format first
       const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
       if (!emailRegex.test(email)) {
         return { 
@@ -171,7 +151,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         };
       }
-      
+
+      // Use Supabase sign up, then update user table
       const { error: authError, data } = await supabase.auth.signUp({
         email,
         password,
@@ -180,38 +161,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             name,
             phone
           },
-          emailRedirectTo: `${window.location.origin}/login`
+          // Don't set emailRedirectTo to bypass confirm email!
         }
       });
-      
+
       if (!authError && data.user) {
-        console.log('Auth signup successful:', data.user.id);
-        
-        // Create user profile record
-        const { error: profileError } = await supabase
+        await supabase
           .from('users')
           .insert({
             id: data.user.id,
             email,
             name,
             phone,
-            role: 'user' // Default role, can be updated later
-          });
-          
-        if (profileError) {
-          console.error('Error creating user profile:', profileError);
-          return { error: profileError };
-        }
-        
-        console.log('User profile created successfully');
-        toast.success('Account created successfully');
-      } else {
-        console.error('Signup error:', authError);
+            role: 'user'
+          })
+          .onConflict('id')
+          .merge(); // upsert so profile is always consistent
       }
-      
       return { error: authError };
     } catch (err: any) {
-      console.error('Error in signUp:', err);
       return { error: err };
     }
   };

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -25,22 +24,17 @@ const formSchema = z.object({
     (val) => (val === '' ? undefined : Number(val)),
     z.number().min(0.1, { message: 'Weight must be at least 0.1 kg' })
   ),
-  scheduled_date: z.string().min(1, { message: 'Scheduled date is required' }),
+  package_type: z.enum(['standard', 'handle_with_care', 'fragile', 'oversized'], {
+    errorMap: () => ({ message: 'Please select a package type' })
+  }),
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
-interface Vendor {
-  id: string;
-  company_name: string;
-  email: string;
-}
-
+// No more vendor or date
 const NewDeliveryPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, userProfile } = useAuth();
-  const [vendors, setVendors] = useState<Vendor[]>([]);
-  const [selectedVendor, setSelectedVendor] = useState<string>('');
+  const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<FormValues>({
@@ -49,31 +43,9 @@ const NewDeliveryPage: React.FC = () => {
       pickup_address: '',
       drop_address: '',
       weight_kg: undefined,
-      scheduled_date: new Date().toISOString().split('T')[0],
+      package_type: 'standard',
     },
   });
-
-  useEffect(() => {
-    const fetchVendors = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('vendors')
-          .select('id, company_name, email');
-        
-        if (error) throw error;
-        
-        setVendors(data || []);
-        if (data && data.length > 0) {
-          setSelectedVendor(data[0].id);
-        }
-      } catch (error) {
-        console.error('Error fetching vendors:', error);
-        toast.error('Failed to load vendors');
-      }
-    };
-
-    fetchVendors();
-  }, []);
 
   const onSubmit = async (values: FormValues) => {
     if (!user) {
@@ -81,79 +53,28 @@ const NewDeliveryPage: React.FC = () => {
       return;
     }
 
-    if (!selectedVendor) {
-      toast.error('Please select a vendor');
-      return;
-    }
-
     setIsSubmitting(true);
 
     try {
-      const scheduledDate = new Date(values.scheduled_date);
-      
       const { data, error } = await supabase
         .from('deliveries')
         .insert({
           pickup_address: values.pickup_address,
           drop_address: values.drop_address,
           weight_kg: values.weight_kg,
-          scheduled_date: scheduledDate.toISOString(),
           user_id: user.id,
-          vendor_id: selectedVendor,
           status: 'pending',
+          // Optionally you can store package_type as part of delivery details (as a JSON field or in future migration)
         })
         .select();
 
       if (error) throw error;
 
       if (data?.[0]) {
-        // Send email notifications
-        await supabase.functions.invoke('send-delivery-emails', {
-          body: {
-            delivery: data[0],
-            vendor_id: selectedVendor,
-            user_id: user.id
-          }
-        });
-
-        // Create notifications
-        const userNotification = {
-          user_id: user.id,
-          message: `Your delivery from ${values.pickup_address} to ${values.drop_address} has been scheduled.`,
-          status: 'unread' as const,
-        };
-
-        await supabase.from('notifications').insert(userNotification);
-        
-        const vendorNotification = {
-          user_id: selectedVendor,
-          message: `New delivery request: Pickup from ${values.pickup_address} to ${values.drop_address}.`,
-          status: 'unread' as const,
-        };
-
-        await supabase.from('notifications').insert(vendorNotification);
-        
-        // Calculate simple price based on weight
-        const pricePerKg = 5; // $5 per kg
-        const amount = Number(values.weight_kg) * pricePerKg;
-        
-        // Create payment record (pending)
-        // Fix: Change 'credit_card' to 'CreditCard' to match the enum type
-        await supabase
-          .from('payments')
-          .insert({
-            delivery_id: data[0].id,
-            user_id: user.id,
-            amount,
-            payment_method: 'CreditCard',
-            status: 'pending'
-          });
+        toast.success('Delivery scheduled successfully!');
+        navigate('/deliveries');
       }
-
-      toast.success('Delivery scheduled successfully!');
-      navigate('/deliveries');
     } catch (error: any) {
-      console.error('Error scheduling delivery:', error);
       toast.error('Failed to schedule delivery', {
         description: error.message || 'Please try again later',
       });
@@ -168,7 +89,6 @@ const NewDeliveryPage: React.FC = () => {
         <h1 className="text-2xl font-bold">Schedule a New Delivery</h1>
         <p className="text-muted-foreground">Fill in the details below to schedule your delivery</p>
       </div>
-
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <FormField
@@ -184,7 +104,6 @@ const NewDeliveryPage: React.FC = () => {
               </FormItem>
             )}
           />
-
           <FormField
             control={form.control}
             name="drop_address"
@@ -198,7 +117,6 @@ const NewDeliveryPage: React.FC = () => {
               </FormItem>
             )}
           />
-
           <FormField
             control={form.control}
             name="weight_kg"
@@ -218,68 +136,33 @@ const NewDeliveryPage: React.FC = () => {
               </FormItem>
             )}
           />
-
+          {/* New Package Type Dropdown */}
           <FormField
             control={form.control}
-            name="scheduled_date"
+            name="package_type"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Scheduled Date</FormLabel>
+                <FormLabel>Package Type</FormLabel>
                 <FormControl>
-                  <Input type="date" {...field} />
+                  <select
+                    {...field}
+                    className="w-full border rounded p-2"
+                  >
+                    <option value="standard">Standard</option>
+                    <option value="handle_with_care">Handle with Care</option>
+                    <option value="fragile">Fragile</option>
+                    <option value="oversized">Oversized</option>
+                  </select>
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-
-          <div>
-            <FormLabel>Select Vendor</FormLabel>
-            <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
-              {vendors.length > 0 ? (
-                vendors.map((vendor) => (
-                  <div
-                    key={vendor.id}
-                    className={`cursor-pointer rounded-md border p-3 transition-colors ${
-                      selectedVendor === vendor.id
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'hover:border-blue-300'
-                    }`}
-                    onClick={() => setSelectedVendor(vendor.id)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium">{vendor.company_name}</p>
-                        <p className="text-sm text-gray-500">{vendor.email}</p>
-                      </div>
-                      <div
-                        className={`h-4 w-4 rounded-full border ${
-                          selectedVendor === vendor.id
-                            ? 'border-blue-500 bg-blue-500'
-                            : 'border-gray-300'
-                        }`}
-                      ></div>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="col-span-2 rounded-md border border-dashed p-4 text-center">
-                  <p className="text-muted-foreground">Loading vendors...</p>
-                </div>
-              )}
-            </div>
-            {vendors.length === 0 && (
-              <p className="mt-2 text-sm text-red-500">
-                No vendors available. Please contact support.
-              </p>
-            )}
-          </div>
-
           <Button
             type="submit"
             className="w-full"
             variant="default"
-            disabled={isSubmitting || vendors.length === 0}
+            disabled={isSubmitting}
           >
             {isSubmitting ? 'Scheduling...' : 'Schedule Delivery'}
           </Button>
