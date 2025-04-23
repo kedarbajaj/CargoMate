@@ -2,7 +2,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 type AuthContextType = {
@@ -127,6 +126,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signIn = async (email: string, password: string) => {
     try {
       console.log('Signing in user:', email);
+      
+      // Validate email format first
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      if (!emailRegex.test(email)) {
+        return { 
+          error: {
+            message: "Email format is invalid",
+            code: "email_address_invalid"
+          }
+        };
+      }
+      
       const { error, data } = await supabase.auth.signInWithPassword({
         email,
         password
@@ -149,6 +160,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signUp = async (email: string, password: string, name: string, phone: string) => {
     try {
       console.log('Signing up user:', email);
+      
+      // Validate email format first
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      if (!emailRegex.test(email)) {
+        return { 
+          error: {
+            message: "Email format is invalid",
+            code: "email_address_invalid"
+          }
+        };
+      }
+      
       const { error: authError, data } = await supabase.auth.signUp({
         email,
         password,
