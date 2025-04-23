@@ -133,18 +133,19 @@ const NewDeliveryPage: React.FC = () => {
 
         await supabase.from('notifications').insert(vendorNotification);
         
-        // Create payment record (pending)
         // Calculate simple price based on weight
         const pricePerKg = 5; // $5 per kg
         const amount = Number(values.weight_kg) * pricePerKg;
         
+        // Create payment record (pending)
+        // Fix: Change 'credit_card' to 'CreditCard' to match the enum type
         await supabase
           .from('payments')
           .insert({
             delivery_id: data[0].id,
             user_id: user.id,
             amount,
-            payment_method: 'credit_card',
+            payment_method: 'CreditCard',
             status: 'pending'
           });
       }
