@@ -5,91 +5,82 @@
 
 @layer base {
   :root {
-    --background: 47 63% 93%; /* Cream Latte #FAF3E0 */
-    --foreground: 22 48% 30%; /* Rich Espresso #6F4E37 */
+    --background: 200 20% 95%; /* Soft Blue Gray */
+    --foreground: 220 15% 20%; /* Dark Navy */
 
-    --card: 47 63% 93%; /* Cream Latte #FAF3E0 */
-    --card-foreground: 22 48% 30%; /* Rich Espresso #6F4E37 */
+    --card: 200 20% 95%; /* Soft Blue Gray */
+    --card-foreground: 220 15% 20%; /* Dark Navy */
 
-    --popover: 47 63% 93%; /* Cream Latte #FAF3E0 */
-    --popover-foreground: 22 48% 30%; /* Rich Espresso #6F4E37 */
+    --popover: 200 20% 95%; /* Soft Blue Gray */
+    --popover-foreground: 220 15% 20%; /* Dark Navy */
 
-    --primary: 22 34% 55%; /* Burnt Caramel #C07C56 */
-    --primary-foreground: 47 63% 93%; /* Cream Latte #FAF3E0 */
+    --primary: 210 77% 55%; /* Vibrant Blue */
+    --primary-foreground: 0 0% 100%; /* Pure White */
 
-    --secondary: 22 48% 30%; /* Rich Espresso #6F4E37 */
-    --secondary-foreground: 47 63% 93%; /* Cream Latte #FAF3E0 */
+    --secondary: 220 13% 35%; /* Deep Navy */
+    --secondary-foreground: 0 0% 98%; /* Almost White */
 
-    --muted: 20 17% 21%; /* Dark Cocoa #3B2F2F with lighter opacity */
-    --muted-foreground: 22 48% 30%; /* Rich Espresso with lower opacity */
+    --muted: 210 20% 70%; /* Soft Gray Blue */
+    --muted-foreground: 220 15% 30%; /* Darker Navy */
 
-    --accent: 22 34% 55%; /* Burnt Caramel #C07C56 with lower opacity */
-    --accent-foreground: 47 63% 93%; /* Cream Latte #FAF3E0 */
+    --accent: 190 95% 45%; /* Bright Teal */
+    --accent-foreground: 0 0% 100%; /* Pure White */
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 47 63% 93%; /* Cream Latte #FAF3E0 */
+    --destructive: 350 90% 60%; /* Vibrant Red */
+    --destructive-foreground: 0 0% 100%; /* Pure White */
 
-    --border: 22 34% 40%; /* Darker Burnt Caramel */
-    --input: 22 34% 40%; /* Darker Burnt Caramel */
-    --ring: 22 34% 55%; /* Burnt Caramel #C07C56 */
+    --border: 210 20% 80%; /* Light Blue Gray */
+    --input: 210 20% 80%; /* Light Blue Gray */
+    --ring: 210 77% 55%; /* Vibrant Blue */
 
     --radius: 0.5rem;
 
-    --sidebar-background: 22 48% 30%; /* Rich Espresso #6F4E37 */
-    --sidebar-foreground: 47 63% 93%; /* Cream Latte #FAF3E0 */
-    --sidebar-primary: 47 63% 93%; /* Cream Latte #FAF3E0 */
-    --sidebar-primary-foreground: 22 48% 30%; /* Rich Espresso #6F4E37 */
-    --sidebar-accent: 22 34% 55%; /* Burnt Caramel #C07C56 */
-    --sidebar-accent-foreground: 47 63% 93%; /* Cream Latte #FAF3E0 */
-    --sidebar-border: 22 34% 40%; /* Darker Burnt Caramel */
-    --sidebar-ring: 22 34% 55%; /* Burnt Caramel #C07C56 */
+    --sidebar-background: 220 13% 35%; /* Deep Navy */
+    --sidebar-foreground: 0 0% 98%; /* Almost White */
+    --sidebar-primary: 210 77% 55%; /* Vibrant Blue */
+    --sidebar-primary-foreground: 0 0% 100%; /* Pure White */
+    --sidebar-accent: 190 95% 45%; /* Bright Teal */
+    --sidebar-accent-foreground: 0 0% 100%; /* Pure White */
+    --sidebar-border: 210 20% 80%; /* Light Blue Gray */
+    --sidebar-ring: 210 77% 55%; /* Vibrant Blue */
   }
 
   .dark {
-    --background: 20 17% 21%; /* Dark Cocoa #3B2F2F */
-    --foreground: 47 63% 93%; /* Cream Latte #FAF3E0 */
+    --background: 220 15% 20%; /* Dark Navy */
+    --foreground: 200 20% 95%; /* Soft Blue Gray */
 
-    --card: 20 17% 21%; /* Dark Cocoa #3B2F2F */
-    --card-foreground: 47 63% 93%; /* Cream Latte #FAF3E0 */
+    --card: 220 15% 20%; /* Dark Navy */
+    --card-foreground: 200 20% 95%; /* Soft Blue Gray */
 
-    --popover: 20 17% 21%; /* Dark Cocoa #3B2F2F */
-    --popover-foreground: 47 63% 93%; /* Cream Latte #FAF3E0 */
+    --popover: 220 15% 20%; /* Dark Navy */
+    --popover-foreground: 200 20% 95%; /* Soft Blue Gray */
 
-    --primary: 22 34% 55%; /* Burnt Caramel #C07C56 */
-    --primary-foreground: 47 63% 93%; /* Cream Latte #FAF3E0 */
+    --primary: 210 77% 55%; /* Vibrant Blue */
+    --primary-foreground: 0 0% 100%; /* Pure White */
 
-    --secondary: 22 48% 30%; /* Rich Espresso #6F4E37 */
-    --secondary-foreground: 47 63% 93%; /* Cream Latte #FAF3E0 */
+    --secondary: 200 20% 95%; /* Soft Blue Gray */
+    --secondary-foreground: 220 15% 20%; /* Dark Navy */
 
-    --muted: 22 48% 20%; /* Darker Rich Espresso */
-    --muted-foreground: 47 63% 93%; /* Cream Latte with lower opacity */
+    --muted: 220 10% 30%; /* Dark Slate Gray */
+    --muted-foreground: 200 20% 90%; /* Light Blue Gray */
 
-    --accent: 22 34% 55%; /* Burnt Caramel #C07C56 */
-    --accent-foreground: 47 63% 93%; /* Cream Latte #FAF3E0 */
+    --accent: 190 95% 45%; /* Bright Teal */
+    --accent-foreground: 0 0% 100%; /* Pure White */
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 47 63% 93%; /* Cream Latte #FAF3E0 */
+    --destructive: 350 90% 60%; /* Vibrant Red */
+    --destructive-foreground: 0 0% 100%; /* Pure White */
 
-    --border: 22 34% 45%; /* Burnt Caramel variation */
-    --input: 22 34% 45%; /* Burnt Caramel variation */
-    --ring: 22 34% 55%; /* Burnt Caramel #C07C56 */
+    --border: 220 15% 30%; /* Darker Navy */
+    --input: 220 15% 30%; /* Darker Navy */
+    --ring: 210 77% 55%; /* Vibrant Blue */
 
-    --sidebar-background: 20 17% 21%; /* Dark Cocoa #3B2F2F */
-    --sidebar-foreground: 47 63% 93%; /* Cream Latte #FAF3E0 */
-    --sidebar-primary: 22 34% 55%; /* Burnt Caramel #C07C56 */
-    --sidebar-primary-foreground: 47 63% 93%; /* Cream Latte #FAF3E0 */
-    --sidebar-accent: 22 48% 30%; /* Rich Espresso #6F4E37 */
-    --sidebar-accent-foreground: 47 63% 93%; /* Cream Latte #FAF3E0 */
-    --sidebar-border: 22 34% 40%; /* Darker Burnt Caramel */
-    --sidebar-ring: 22 34% 55%; /* Burnt Caramel #C07C56 */
-  }
-}
-
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
+    --sidebar-background: 220 15% 20%; /* Dark Navy */
+    --sidebar-foreground: 200 20% 95%; /* Soft Blue Gray */
+    --sidebar-primary: 210 77% 55%; /* Vibrant Blue */
+    --sidebar-primary-foreground: 0 0% 100%; /* Pure White */
+    --sidebar-accent: 190 95% 45%; /* Bright Teal */
+    --sidebar-accent-foreground: 0 0% 100%; /* Pure White */
+    --sidebar-border: 220 15% 30%; /* Darker Navy */
+    --sidebar-ring: 210 77% 55%; /* Vibrant Blue */
   }
 }
