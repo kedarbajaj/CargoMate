@@ -28,19 +28,24 @@ const FeedbackPage: React.FC = () => {
       toast.error(t('feedback.fillAllFields'));
       return;
     }
-
+    
     setIsSubmitting(true);
     
     try {
-      // Store feedback in the database via notifications table since we don't have a feedback table
-      const { error: dbError } = await supabase.from('notifications').insert({
-        message: `${feedbackType.toUpperCase()} - ${subject}: ${message.substring(0, 100)}${message.length > 100 ? '...' : ''}`,
-        status: 'unread',
-        user_id: user?.id || null
-      });
+      // Store feedback in the database
+      const { error: dbError } = await supabase
+        .from('feedback')
+        .insert({
+          name,
+          email,
+          feedback_type: feedbackType,
+          subject,
+          message,
+          user_id: user?.id || null
+        });
       
       if (dbError) throw dbError;
-
+      
       // Send an email to the admin
       const { error: emailError } = await supabase.functions.invoke('send-feedback-email', {
         body: {
@@ -71,7 +76,7 @@ const FeedbackPage: React.FC = () => {
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4 text-[#3B2F2F]">{t('feedback.title')}</h1>
       <p className="text-muted-foreground mb-6">{t('feedback.subtitle')}</p>
-
+      
       <Card className="border-[#C07C56] bg-[#FAF3E0]">
         <CardHeader>
           <CardTitle className="text-[#6F4E37]">{t('feedback.formTitle')}</CardTitle>
@@ -81,7 +86,7 @@ const FeedbackPage: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label htmlFor="name">{t('feedback.name')}</Label>
-                <Input
+                <Input 
                   id="name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -102,7 +107,7 @@ const FeedbackPage: React.FC = () => {
                 />
               </div>
             </div>
-
+            
             <div className="space-y-2">
               <Label htmlFor="feedbackType">{t('feedback.type')}</Label>
               <Select value={feedbackType} onValueChange={setFeedbackType}>
@@ -118,7 +123,7 @@ const FeedbackPage: React.FC = () => {
                 </SelectContent>
               </Select>
             </div>
-
+            
             <div className="space-y-2">
               <Label htmlFor="subject">{t('feedback.subject')}</Label>
               <Input
@@ -129,7 +134,7 @@ const FeedbackPage: React.FC = () => {
                 required
               />
             </div>
-
+            
             <div className="space-y-2">
               <Label htmlFor="message">{t('feedback.message')}</Label>
               <Textarea
@@ -140,7 +145,7 @@ const FeedbackPage: React.FC = () => {
                 required
               />
             </div>
-
+            
             <Button
               type="submit"
               className="bg-[#C07C56] hover:bg-[#6F4E37] text-white w-full"

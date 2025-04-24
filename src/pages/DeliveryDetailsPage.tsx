@@ -70,7 +70,7 @@ const DeliveryDetailsPage: React.FC = () => {
     fetchDeliveryDetails();
   }, [id, t]);
 
-  const handleStatusChange = async (newStatus: string) => {
+  const handleStatusChange = async (newStatus: 'pending' | 'in_transit' | 'delivered' | 'cancelled') => {
     try {
       if (!delivery) return;
 
@@ -81,7 +81,7 @@ const DeliveryDetailsPage: React.FC = () => {
 
       if (error) throw error;
 
-      setDelivery({ ...delivery, status: newStatus as any });
+      setDelivery({ ...delivery, status: newStatus });
 
       // Notify the user via serverless function
       await supabase.functions.invoke('handle-delivery-action', {

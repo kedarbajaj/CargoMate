@@ -48,3 +48,15 @@ export interface InvoiceData {
   package_type: string;
   amount: number;
 }
+
+// Define type for feedback
+export interface Feedback {
+  id?: string;
+  user_id?: string;
+  name: string;
+  email: string;
+  feedback_type: 'general' | 'bug' | 'feature' | 'complaint' | 'praise';
+  subject: string;
+  message: string;
+  created_at?: string;
+}

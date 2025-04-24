@@ -14,7 +14,7 @@ const PaymentsPage: React.FC = () => {
   const { user } = useAuth();
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedPaymentId, setSelectedPaymentId] = useState<string | null>(null);
+  const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
   useEffect(() => {
@@ -42,29 +42,32 @@ const PaymentsPage: React.FC = () => {
   }, [user, t]);
 
   const handlePayNow = (paymentId: string) => {
-    setSelectedPaymentId(paymentId);
-    setIsPaymentModalOpen(true);
+    const payment = payments.find(p => p.id === paymentId);
+    if (payment) {
+      setSelectedPayment(payment);
+      setIsPaymentModalOpen(true);
+    }
   };
 
-  const handlePaymentComplete = async (paymentId: string, success: boolean) => {
-    if (success) {
+  const handlePaymentComplete = async (success: boolean) => {
+    if (selectedPayment && success) {
       // Update the payment in the local state
       setPayments(payments.map(payment => 
-        payment.id === paymentId ? {...payment, status: 'successful' as const} : payment
+        payment.id === selectedPayment.id ? {...payment, status: 'successful' as const} : payment
       ));
       
       toast.success(t('payments.paymentSuccess'));
-    } else {
+    } else if (selectedPayment) {
       // Mark as failed in the local state
       setPayments(payments.map(payment => 
-        payment.id === paymentId ? {...payment, status: 'failed' as const} : payment
+        payment.id === selectedPayment.id ? {...payment, status: 'failed' as const} : payment
       ));
       
       toast.error(t('payments.paymentFailed'));
     }
     
     setIsPaymentModalOpen(false);
-    setSelectedPaymentId(null);
+    setSelectedPayment(null);
   };
 
   // Calculate total amounts
@@ -83,8 +86,6 @@ const PaymentsPage: React.FC = () => {
       </div>
     );
   }
-
-  const selectedPayment = payments.find(p => p.id === selectedPaymentId);
 
   return (
     <div className="container mx-auto p-4">
@@ -180,9 +181,8 @@ const PaymentsPage: React.FC = () => {
       {isPaymentModalOpen && selectedPayment && (
         <PaymentComponent
           amount={selectedPayment.amount || 0}
-          paymentId={selectedPayment.id}
           onClose={() => setIsPaymentModalOpen(false)}
-          onPaymentComplete={handlePaymentComplete}
+          onPaymentComplete={(success) => handlePaymentComplete(success)}
         />
       )}
     </div>
