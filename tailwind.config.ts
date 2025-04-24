@@ -54,16 +54,16 @@ export default {
           foreground: 'hsl(var(--card-foreground))'
         },
         cargomate: {
-          50: '#E6F2FF',   // Lightest Blue
-          100: '#B3DBFF',  // Light Blue
-          200: '#80C4FF',  // Medium Light Blue
-          300: '#4DADFF',  // Medium Blue
-          400: '#1A96FF',  // Vibrant Blue
-          500: '#0077CC',  // Deep Blue
-          600: '#005FA3',  // Dark Blue
-          700: '#00477A',  // Darker Blue
-          800: '#003052',  // Navy Blue
-          900: '#001A29',  // Darkest Blue
+          50: 'hsl(var(--cargomate-50))',
+          100: 'hsl(var(--cargomate-100))',
+          200: 'hsl(var(--cargomate-200))',
+          300: 'hsl(var(--cargomate-300))',
+          400: 'hsl(var(--cargomate-400))',
+          500: 'hsl(var(--cargomate-500))',
+          600: 'hsl(var(--cargomate-600))',
+          700: 'hsl(var(--cargomate-700))',
+          800: 'hsl(var(--cargomate-800))',
+          900: 'hsl(var(--cargomate-900))'
         }
       },
       borderRadius: {

@@ -15,26 +15,38 @@
     --popover: 210 20% 98%; /* Very Light Blue Gray */
     --popover-foreground: 220 15% 20%; /* Deep Navy */
 
-    --primary: 210 77% 55%; /* Vibrant Blue */
+    --primary: 210 77% 45%; /* Vibrant Blue - More saturated */
     --primary-foreground: 0 0% 100%; /* Pure White */
 
-    --secondary: 220 13% 35%; /* Deep Navy */
+    --secondary: 220 13% 35%; /* Deep Navy - Slightly darker */
     --secondary-foreground: 0 0% 98%; /* Almost White */
 
     --muted: 210 20% 70%; /* Soft Gray Blue */
     --muted-foreground: 220 15% 30%; /* Darker Navy */
 
-    --accent: 190 95% 45%; /* Bright Teal */
+    --accent: 190 95% 40%; /* Teal - Slightly deeper */
     --accent-foreground: 0 0% 100%; /* Pure White */
 
-    --destructive: 350 90% 60%; /* Vibrant Red */
+    --destructive: 350 90% 50%; /* Vibrant Red - More visible */
     --destructive-foreground: 0 0% 100%; /* Pure White */
 
-    --border: 210 20% 80%; /* Light Blue Gray */
-    --input: 210 20% 80%; /* Light Blue Gray */
-    --ring: 210 77% 55%; /* Vibrant Blue */
+    --border: 210 20% 75%; /* Lighter Blue Gray */
+    --input: 210 20% 75%; /* Lighter Blue Gray */
+    --ring: 210 77% 45%; /* Vibrant Blue */
 
     --radius: 0.5rem;
+
+    /* CargoMate Custom Colors */
+    --cargomate-50: 210 77% 95%; /* Lightest Blue */
+    --cargomate-100: 210 77% 85%; /* Light Blue */
+    --cargomate-200: 210 77% 75%; /* Medium Light Blue */
+    --cargomate-300: 210 77% 65%; /* Medium Blue */
+    --cargomate-400: 210 77% 55%; /* Vibrant Blue */
+    --cargomate-500: 210 77% 45%; /* Deep Blue */
+    --cargomate-600: 210 77% 35%; /* Dark Blue */
+    --cargomate-700: 210 77% 25%; /* Darker Blue */
+    --cargomate-800: 210 77% 15%; /* Navy Blue */
+    --cargomate-900: 210 77% 10%; /* Darkest Blue */
   }
 
   .dark {
@@ -66,5 +78,17 @@
     --border: 220 15% 30%; /* Darker Navy */
     --input: 220 15% 30%; /* Darker Navy */
     --ring: 210 77% 55%; /* Vibrant Blue */
+
+    /* CargoMate Custom Colors for Dark Mode */
+    --cargomate-50: 210 77% 20%; /* Darkest Blue */
+    --cargomate-100: 210 77% 25%; /* Dark Navy */
+    --cargomate-200: 210 77% 35%; /* Dark Blue */
+    --cargomate-300: 210 77% 45%; /* Deep Blue */
+    --cargomate-400: 210 77% 55%; /* Vibrant Blue */
+    --cargomate-500: 210 77% 65%; /* Medium Blue */
+    --cargomate-600: 210 77% 75%; /* Medium Light Blue */
+    --cargomate-700: 210 77% 85%; /* Light Blue */
+    --cargomate-800: 210 77% 90%; /* Lightest Blue */
+    --cargomate-900: 210 77% 95%; /* Almost White Blue */
   }
 }
