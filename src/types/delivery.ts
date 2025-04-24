@@ -1,0 +1,50 @@
+
+// Define types for deliveries
+export interface Delivery {
+  id: string;
+  user_id?: string;
+  vendor_id?: string;
+  status: string;
+  pickup_address?: string;
+  drop_address?: string;
+  weight_kg?: number;
+  package_type?: string;
+  created_at?: string;
+  scheduled_date?: string;
+}
+
+// Define types for payments
+export interface Payment {
+  id: string;
+  delivery_id?: string;
+  user_id?: string;
+  amount?: number;
+  payment_method?: string;
+  status?: string;
+  created_at?: string;
+}
+
+// Define types for user profiles
+export interface UserProfile {
+  id?: string;
+  name?: string;
+  email?: string;
+  phone?: string;
+  role?: string;
+}
+
+// Define type for invoice data
+export interface InvoiceData {
+  id: string;
+  created_at: string;
+  user: {
+    name: string;
+    email: string;
+    phone: string;
+  };
+  pickup_address: string;
+  drop_address: string;
+  weight_kg: number;
+  package_type: string;
+  amount: number;
+}

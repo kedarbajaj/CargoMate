@@ -6,7 +6,6 @@ import { AuthProvider, useAuth } from './lib/auth';
 import MainLayout from './components/MainLayout';
 import './lib/i18n'; // Import i18n configuration
 import { useTranslation } from 'react-i18next';
-import html2pdf from 'html2pdf.js';
 
 // Auth Pages
 import LoginPage from './pages/LoginPage';
@@ -23,6 +22,7 @@ import AdminDashboardPage from './pages/AdminDashboardPage';
 import TrackingPage from './pages/TrackingPage';
 import PaymentsPage from './pages/PaymentsPage';
 import ProfilePage from './pages/ProfilePage';
+import FeedbackPage from './pages/FeedbackPage';
 import { supabase } from './integrations/supabase/client';
 
 // App component with the router configuration
@@ -125,6 +125,14 @@ const App: React.FC = () => {
             <ProtectedRoute>
               <MainLayout>
                 <ProfilePage />
+              </MainLayout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/feedback" element={
+            <ProtectedRoute>
+              <MainLayout>
+                <FeedbackPage />
               </MainLayout>
             </ProtectedRoute>
           } />

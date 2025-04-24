@@ -1,228 +1,164 @@
-import React from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import {
-  Sidebar,
-  SidebarProvider,
-  SidebarHeader,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarGroupContent,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarTrigger,
-} from '@/components/ui/sidebar';
-import { Button } from '@/components/ui/button';
+
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
-import { Toaster } from 'sonner';
-import NotificationsPopover from './NotificationsPopover';
-import UserAccountDropdown from './UserAccountDropdown';
-import { IconProps } from '@/types/icon';
+import { Button } from '@/components/ui/button';
+import { Sidebar, SidebarSection, SidebarItem } from '@/components/ui/sidebar';
+import NotificationsPopover from '@/components/NotificationsPopover';
+import UserAccountDropdown from '@/components/UserAccountDropdown';
+import { useTranslation } from 'react-i18next';
+import LanguageSelector from './LanguageSelector';
+
+// Icons
+import {
+  PackageIcon,
+  TruckIcon,
+  HomeIcon,
+  UsersIcon,
+  CreditCardIcon,
+  SettingsIcon,
+  ShieldIcon,
+  BarChartIcon,
+  MessageCircleIcon
+} from 'lucide-react';
 
 interface MainLayoutProps {
   children: React.ReactNode;
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
-  const { user, signOut, isAdmin, isVendor } = useAuth();
+  const { isAdmin, isVendor } = useAuth();
   const location = useLocation();
-  const navigate = useNavigate();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { t } = useTranslation();
 
-  if (!user) {
-    navigate('/login', { replace: true });
-    return null;
-  }
+  // Close mobile menu when route changes
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full">
-        <Sidebar>
-          <SidebarHeader>
-            <Link to="/dashboard" className="flex items-center gap-2">
-              <span className="text-xl font-bold text-sidebar-foreground">CargoMate</span>
+    <div className="flex min-h-screen bg-[#FAF3E0]">
+      {/* Mobile Menu Toggle */}
+      <div className="lg:hidden fixed top-4 left-4 z-30">
+        <Button
+          variant="outline"
+          size="icon"
+          className="border-[#C07C56] text-[#6F4E37] hover:bg-[#C07C56] hover:text-white"
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        >
+          {isMobileMenuOpen ? (
+            <span className="text-xl">✕</span>
+          ) : (
+            <span className="text-xl">☰</span>
+          )}
+        </Button>
+      </div>
+
+      {/* Sidebar */}
+      <div
+        className={`fixed inset-y-0 left-0 transform ${
+          isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+        } lg:translate-x-0 z-20 w-64 bg-[#FAF3E0] border-r border-[#C07C56] transition duration-200 ease-in-out lg:static lg:inset-auto lg:translate-x-0`}
+      >
+        <div className="flex flex-col h-full">
+          <div className="p-4">
+            <Link to="/dashboard" className="flex items-center">
+              <TruckIcon className="h-8 w-8 text-[#C07C56]" strokeWidth={1.5} />
+              <span className="text-xl font-bold ml-2 text-[#6F4E37]">CargoMate</span>
             </Link>
-          </SidebarHeader>
-          
-          <SidebarContent>
-            <SidebarGroup>
-              <SidebarGroupLabel>Navigation</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
-                      <Link to="/dashboard" className={location.pathname === '/dashboard' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}>
-                        <HomeIcon />
-                        <span>Dashboard</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
-                      <Link to="/deliveries" className={location.pathname === '/deliveries' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}>
-                        <DeliveryIcon />
-                        <span>Deliveries</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  
-                  {isVendor && (
-                    <SidebarMenuItem>
-                      <SidebarMenuButton asChild>
-                        <Link to="/vendor-dashboard" className={location.pathname === '/vendor-dashboard' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}>
-                          <VendorIcon />
-                          <span>Vendor Dashboard</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  )}
-                  
-                  {isAdmin && (
-                    <SidebarMenuItem>
-                      <SidebarMenuButton asChild>
-                        <Link to="/admin-dashboard" className={location.pathname === '/admin-dashboard' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}>
-                          <AdminIcon />
-                          <span>Admin Dashboard</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  )}
-                  
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
-                      <Link to="/tracking" className={location.pathname === '/tracking' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}>
-                        <TrackingIcon />
-                        <span>Track Delivery</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
-                      <Link to="/payments" className={location.pathname === '/payments' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}>
-                        <PaymentsIcon />
-                        <span>Payments</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
-                      <Link to="/profile" className={location.pathname === '/profile' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}>
-                        <ProfileIcon />
-                        <span>Profile</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          </SidebarContent>
-          
-          <SidebarFooter>
-            <Button 
-              variant="outline" 
-              onClick={() => signOut()} 
-              className="w-full justify-start"
-            >
-              <LogoutIcon className="mr-2 h-4 w-4" />
-              <span>Sign out</span>
-            </Button>
-          </SidebarFooter>
-        </Sidebar>
-        
-        <div className="flex-1 ml-16 md:ml-64 transition-all duration-300">
-          <div className="flex items-center justify-between p-4 border-b">
-            <div className="flex items-center">
-              <SidebarTrigger className="mr-4" />
-              <h1 className="text-xl font-semibold">{getPageTitle(location.pathname)}</h1>
-            </div>
-            
-            <div className="flex items-center gap-4">
-              <NotificationsPopover />
-              <UserAccountDropdown />
-            </div>
           </div>
-          
-          <main className="p-6">
-            {children}
-          </main>
+
+          <Sidebar className="pb-12 w-full flex flex-col h-full border-none">
+            <SidebarSection>
+              <SidebarItem
+                icon={<HomeIcon className="h-4 w-4" />}
+                text={t('navigation.dashboard')}
+                to={isAdmin ? "/admin-dashboard" : isVendor ? "/vendor-dashboard" : "/dashboard"}
+                active={location.pathname === "/dashboard" || location.pathname === "/admin-dashboard" || location.pathname === "/vendor-dashboard"}
+              />
+              <SidebarItem
+                icon={<PackageIcon className="h-4 w-4" />}
+                text={t('navigation.deliveries')}
+                to="/deliveries"
+                active={location.pathname === "/deliveries" || location.pathname.includes("/deliveries/")}
+              />
+              {!isVendor && (
+                <SidebarItem
+                  icon={<TruckIcon className="h-4 w-4" />}
+                  text={t('navigation.tracking')}
+                  to="/tracking"
+                  active={location.pathname === "/tracking"}
+                />
+              )}
+              <SidebarItem
+                icon={<CreditCardIcon className="h-4 w-4" />}
+                text={t('navigation.payments')}
+                to="/payments"
+                active={location.pathname === "/payments"}
+              />
+              {isAdmin && (
+                <SidebarItem
+                  icon={<BarChartIcon className="h-4 w-4" />}
+                  text={t('admin.analytics')}
+                  to="/admin-dashboard"
+                  active={location.pathname === "/admin-dashboard"}
+                />
+              )}
+              {isAdmin && (
+                <SidebarItem
+                  icon={<UsersIcon className="h-4 w-4" />}
+                  text={t('admin.users')}
+                  to="/admin-users"
+                  active={location.pathname === "/admin-users"}
+                />
+              )}
+              {isVendor && (
+                <SidebarItem
+                  icon={<ShieldIcon className="h-4 w-4" />}
+                  text={t('vendor.deliveries')}
+                  to="/vendor-deliveries"
+                  active={location.pathname === "/vendor-deliveries"}
+                />
+              )}
+              <SidebarItem
+                icon={<MessageCircleIcon className="h-4 w-4" />}
+                text={t('feedback.title')}
+                to="/feedback"
+                active={location.pathname === "/feedback"}
+              />
+              <SidebarItem
+                icon={<SettingsIcon className="h-4 w-4" />}
+                text={t('navigation.profile')}
+                to="/profile"
+                active={location.pathname === "/profile"}
+              />
+            </SidebarSection>
+
+            <div className="mt-auto p-4">
+              <LanguageSelector />
+            </div>
+          </Sidebar>
         </div>
       </div>
-      
-      <Toaster position="top-right" />
-    </SidebarProvider>
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col min-h-screen">
+        {/* Top Header */}
+        <header className="bg-white border-b border-[#C07C56] py-2 px-4 lg:px-8 flex justify-end items-center">
+          <div className="flex items-center space-x-4">
+            <NotificationsPopover />
+            <UserAccountDropdown />
+          </div>
+        </header>
+
+        {/* Page Content */}
+        <main className="flex-1 overflow-auto p-4 lg:p-8">
+          {children}
+        </main>
+      </div>
+    </div>
   );
 };
-
-const getPageTitle = (pathname: string): string => {
-  const parts = pathname.split('/').filter(Boolean);
-  if (parts.length === 0) return 'Dashboard';
-  return parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
-};
-
-const HomeIcon: React.FC<IconProps> = ({ className }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className || "h-5 w-5"}>
-    <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-    <polyline points="9 22 9 12 15 12 15 22" />
-  </svg>
-);
-
-const DeliveryIcon: React.FC<IconProps> = ({ className }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className || "h-5 w-5"}>
-    <rect x="2" y="4" width="20" height="16" rx="2" />
-    <path d="M9 4v16" />
-    <path d="M9 8h5" />
-  </svg>
-);
-
-const TrackingIcon: React.FC<IconProps> = ({ className }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className || "h-5 w-5"}>
-    <path d="m3 11 18-5v12L3 14v-3Z" />
-    <path d="M11 12a3 3 0 0 0 0 6 3 3 0 0 0 0-6Z" />
-  </svg>
-);
-
-const PaymentsIcon: React.FC<IconProps> = ({ className }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className || "h-5 w-5"}>
-    <rect x="2" y="5" width="20" height="14" rx="2" />
-    <line x1="2" x2="22" y1="10" y2="10" />
-  </svg>
-);
-
-const ProfileIcon: React.FC<IconProps> = ({ className }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className || "h-5 w-5"}>
-    <circle cx="12" cy="8" r="5" />
-    <path d="M20 21a8 8 0 1 0-16 0" />
-  </svg>
-);
-
-const LogoutIcon: React.FC<IconProps> = ({ className }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className || "h-5 w-5"}>
-    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-    <polyline points="16 17 21 12 16 7" />
-    <line x1="21" y1="12" x2="9" y2="12" />
-  </svg>
-);
-
-const VendorIcon: React.FC<IconProps> = ({ className }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className || "h-5 w-5"}>
-    <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
-    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
-  </svg>
-);
-
-const AdminIcon: React.FC<IconProps> = ({ className }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className || "h-5 w-5"}>
-    <path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5" />
-    <path d="M8.5 8.5v.01" />
-    <path d="M16 15.5v.01" />
-    <path d="M12 12v.01" />
-    <path d="M11 17v.01" />
-    <path d="M7 14v.01" />
-  </svg>
-);
 
 export default MainLayout;

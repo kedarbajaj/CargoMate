@@ -1,91 +1,32 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useAuth } from '@/lib/auth';
-import { supabase } from '@/integrations/supabase/client';
-import { formatDate, formatWeight, getDeliveryStatusColor } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/lib/auth';
+import { formatDate, formatCurrency } from '@/lib/utils';
 import DeliveryInvoice from '@/components/invoice/DeliveryInvoice';
-import { Download } from 'lucide-react';
-import html2pdf from 'html2pdf.js';
+import { toast } from 'sonner';
+import { Delivery, UserProfile } from '@/types/delivery';
 import { useTranslation } from 'react-i18next';
-
-interface Delivery {
-  id: string;
-  pickup_address: string;
-  drop_address: string;
-  weight_kg: number;
-  scheduled_date: string;
-  status: string;
-  created_at: string;
-  user_id: string;
-  vendor_id: string;
-  package_type?: string;
-}
-
-interface UserProfile {
-  name: string;
-  email: string;
-  phone: string;
-}
+import html2pdf from 'html2pdf.js';
 
 const DeliveryDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const { user } = useAuth();
-  const { t } = useTranslation();
   const [delivery, setDelivery] = useState<Delivery | null>(null);
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [showInvoice, setShowInvoice] = useState(false);
+  const { user: authUser, isVendor, isAdmin } = useAuth();
+  const { t } = useTranslation();
 
   useEffect(() => {
-    if (id && user) {
-      const fetchDelivery = async () => {
-        setLoading(true);
-        try {
-          // Adding package_type to the query
-          const { data, error } = await supabase
-            .from('deliveries')
-            .select('*')
-            .eq('id', id)
-            .single();
-
-          if (error) throw error;
-          
-          // Make sure the data includes package_type, defaulting to 'standard' if not present
-          const deliveryWithPackageType: Delivery = {
-            ...data,
-            package_type: data.package_type || 'standard'
-          };
-          
-          setDelivery(deliveryWithPackageType);
-          
-          // Fetch user profile for invoice
-          if (data.user_id) {
-            const { data: userData, error: userError } = await supabase
-              .from('users')
-              .select('name, email, phone')
-              .eq('id', data.user_id)
-              .single();
-              
-            if (userError) throw userError;
-            setUserProfile(userData);
-          }
-        } catch (error) {
-          console.error('Error fetching delivery:', error);
-          toast.error(t('common.error'));
-        } finally {
-          setLoading(false);
-        }
-      };
-
-      fetchDelivery();
-    }
-  }, [id, user, t]);
-
-  const revalidate = async () => {
-    if (id && user) {
+    const fetchDelivery = async () => {
+      setIsLoading(true);
       try {
+        if (!id) return;
+
         const { data, error } = await supabase
           .from('deliveries')
           .select('*')
@@ -93,215 +34,300 @@ const DeliveryDetailsPage: React.FC = () => {
           .single();
 
         if (error) throw error;
-        
-        // Make sure the data includes package_type, defaulting to 'standard' if not present
-        const deliveryWithPackageType: Delivery = {
-          ...data,
-          package_type: data.package_type || 'standard'
-        };
-        
-        setDelivery(deliveryWithPackageType);
+        setDelivery(data as Delivery);
+
+        // Fetch the user details of who placed the order
+        if (data.user_id) {
+          const { data: userData, error: userError } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', data.user_id)
+            .single();
+
+          if (userError) throw userError;
+          setUser(userData);
+        }
       } catch (error) {
-        console.error('Error revalidating delivery:', error);
+        console.error('Error fetching delivery details:', error);
         toast.error(t('common.error'));
+      } finally {
+        setIsLoading(false);
       }
-    }
-  };
-
-  const handleAcceptDelivery = async () => {
-    try {
-      const { error } = await supabase
-        .from('deliveries')
-        .update({ status: 'in_transit' })
-        .eq('id', id);
-
-      if (error) throw error;
-
-      toast.success(t('delivery.accept'));
-      revalidate();
-    } catch (error) {
-      console.error('Error accepting delivery:', error);
-      toast.error(t('common.error'));
-    }
-  };
-
-  const handleRejectDelivery = async () => {
-    try {
-      const { error } = await supabase
-        .from('deliveries')
-        .update({ status: 'cancelled' })
-        .eq('id', id);
-
-      if (error) throw error;
-
-      toast.success(t('delivery.reject'));
-      revalidate();
-    } catch (error) {
-      console.error('Error rejecting delivery:', error);
-      toast.error(t('common.error'));
-    }
-  };
-
-  const handleCompleteDelivery = async () => {
-    try {
-      const { error } = await supabase
-        .from('deliveries')
-        .update({ status: 'delivered' })
-        .eq('id', id);
-
-      if (error) throw error;
-
-      toast.success(t('delivery.complete'));
-      revalidate();
-    } catch (error) {
-      console.error('Error completing delivery:', error);
-      toast.error(t('common.error'));
-    }
-  };
-
-  const handleDownloadInvoice = () => {
-    const element = document.getElementById('invoice');
-    if (!element) {
-      toast.error(t('common.error'));
-      return;
-    }
-
-    const opt = {
-      margin: 10,
-      filename: `cargomate-invoice-${id}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2 },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
-    html2pdf().from(element).set(opt).save();
-    toast.success(t('invoice.download'));
+    fetchDelivery();
+  }, [id, t]);
+
+  const handleDeliveryAction = async (action: 'accept' | 'reject' | 'complete') => {
+    try {
+      if (!delivery) return;
+
+      // Call Supabase Edge Function to handle delivery actions
+      const { data, error } = await supabase.functions.invoke('handle-delivery-action', {
+        body: {
+          deliveryId: delivery.id,
+          action,
+          vendorId: authUser?.id
+        }
+      });
+
+      if (error) throw error;
+
+      // Update the local state with the new status
+      setDelivery(prev => {
+        if (!prev) return null;
+        let newStatus = prev.status;
+
+        switch (action) {
+          case 'accept':
+            newStatus = 'in_transit';
+            break;
+          case 'reject':
+            newStatus = 'cancelled';
+            break;
+          case 'complete':
+            newStatus = 'delivered';
+            break;
+        }
+
+        return { ...prev, status: newStatus };
+      });
+
+      toast.success(data.message || t('common.success'));
+    } catch (error) {
+      console.error('Error performing action:', error);
+      toast.error(t('common.error'));
+    }
   };
 
-  if (loading) {
-    return <div className="flex h-screen items-center justify-center bg-[#FAF3E0]">{t('common.loading')}</div>;
+  const generatePdf = () => {
+    if (!delivery || !user) return;
+
+    const element = document.getElementById('invoice');
+    
+    if (element) {
+      const opt = {
+        margin: 1,
+        filename: `invoice-${delivery.id.substr(0, 8)}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+      
+      html2pdf().set(opt).from(element).save();
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-full p-8">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-t-2 border-[#C07C56]"></div>
+        <p className="ml-3 text-[#6F4E37]">{t('common.loading')}</p>
+      </div>
+    );
   }
 
   if (!delivery) {
-    return <div className="flex h-screen items-center justify-center bg-[#FAF3E0]">Delivery not found.</div>;
+    return (
+      <div className="container mx-auto p-4">
+        <div className="bg-red-100 border border-red-400 text-red-700 p-4 rounded">
+          <p>{t('common.error')}</p>
+          <Link to="/deliveries" className="text-red-700 font-semibold hover:underline mt-2 block">
+            {t('common.back')}
+          </Link>
+        </div>
+      </div>
+    );
   }
 
-  const invoiceData = delivery && userProfile ? {
-    ...delivery,
-    user: userProfile,
-    amount: 0, // Will be calculated in the component
-  } : null;
+  // For the invoice, calculate an approximate amount based on weight
+  const calculateAmount = () => {
+    const baseRate = 100; // ₹100 base rate
+    const weightRate = 50; // ₹50 per kg
+    
+    return baseRate + (delivery.weight_kg || 0) * weightRate;
+  };
+
+  const amount = calculateAmount();
+
+  // Prepare invoice data
+  const invoiceData = {
+    id: delivery.id,
+    created_at: delivery.created_at || new Date().toISOString(),
+    user: {
+      name: user?.name || 'Customer',
+      email: user?.email || 'No Email Provided',
+      phone: user?.phone || 'No Phone Provided'
+    },
+    pickup_address: delivery.pickup_address || '',
+    drop_address: delivery.drop_address || '',
+    weight_kg: delivery.weight_kg || 0,
+    package_type: delivery.package_type || 'standard',
+    amount: amount
+  };
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
-      {!showInvoice ? (
-        <>
-          <div>
-            <h1 className="text-2xl font-bold text-[#3B2F2F]">{t('delivery.details')}</h1>
-            <p className="text-muted-foreground">Details for delivery ID: {delivery.id}</p>
-          </div>
-
-          <div className="rounded-lg border bg-card p-4 text-card-foreground shadow">
-            <div className="grid gap-4">
-              <div>
-                <h2 className="text-lg font-semibold text-[#6F4E37]">{t('delivery.details')}</h2>
-              </div>
-
-              <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-                <div>
-                  <span className="text-sm font-medium text-muted-foreground">{t('delivery.pickupAddress')}</span>
-                  <p className="font-semibold">{delivery.pickup_address}</p>
-                </div>
-                <div>
-                  <span className="text-sm font-medium text-muted-foreground">{t('delivery.deliveryAddress')}</span>
-                  <p className="font-semibold">{delivery.drop_address}</p>
-                </div>
-                <div>
-                  <span className="text-sm font-medium text-muted-foreground">{t('delivery.weight')}</span>
-                  <p className="font-semibold">{formatWeight(delivery.weight_kg)} kg</p>
-                </div>
-                <div>
-                  <span className="text-sm font-medium text-muted-foreground">{t('delivery.packageType')}</span>
-                  <p className="font-semibold capitalize">{t(`delivery.${delivery.package_type?.replace('_', '') || 'standard'}`)}</p>
-                </div>
-                <div>
-                  <span className="text-sm font-medium text-muted-foreground">{t('delivery.status')}</span>
-                  <p>
-                    <span className={`rounded-full px-2 py-1 text-xs font-medium ${getDeliveryStatusColor(delivery.status)}`}>
-                      {delivery.status.toUpperCase()}
-                    </span>
-                  </p>
-                </div>
-                <div>
-                  <span className="text-sm font-medium text-muted-foreground">{t('delivery.createdAt')}</span>
-                  <p className="font-semibold">{formatDate(delivery.created_at)}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Actions Based on Status */}
-          <div className="flex flex-wrap justify-end gap-2">
-            {delivery.status === 'pending' && (
-              <>
-                <Button variant="destructive" onClick={handleRejectDelivery} className="bg-red-500 hover:bg-red-600">
-                  {t('delivery.reject')}
-                </Button>
-                <Button variant="default" onClick={handleAcceptDelivery} className="bg-[#C07C56] hover:bg-[#6F4E37] text-white">
-                  {t('delivery.accept')}
-                </Button>
-              </>
-            )}
-            
-            {delivery.status === 'in_transit' && (
-              <Button variant="default" onClick={handleCompleteDelivery} className="bg-[#C07C56] hover:bg-[#6F4E37] text-white">
-                {t('delivery.complete')}
-              </Button>
-            )}
-            
-            {delivery.status === 'delivered' && (
-              <Button 
-                variant="outline" 
-                onClick={() => setShowInvoice(true)}
-                className="flex items-center gap-1 border-[#C07C56] text-[#6F4E37]"
-              >
-                <Download className="h-4 w-4" /> {t('delivery.viewInvoice')}
-              </Button>
-            )}
-          </div>
-
-          {/* Back to Deliveries */}
-          <div className="mt-4">
-            <Link to="/deliveries">
-              <Button variant="secondary" className="bg-[#FAF3E0] text-[#6F4E37] hover:bg-[#C07C56] hover:text-white">
-                {t('delivery.backToDetails')}
-              </Button>
-            </Link>
-          </div>
-        </>
-      ) : (
-        <>
-          <div className="flex justify-between items-center mb-4">
+    <div className="container mx-auto p-4">
+      {showInvoice ? (
+        <div className="flex flex-col">
+          <div className="flex justify-between mb-4">
             <Button 
-              variant="outline" 
-              onClick={() => setShowInvoice(false)}
+              variant="outline"
               className="border-[#C07C56] text-[#6F4E37]"
+              onClick={() => setShowInvoice(false)}
             >
               {t('delivery.backToDetails')}
             </Button>
             <Button 
-              variant="default" 
-              onClick={handleDownloadInvoice}
-              className="flex items-center gap-1 bg-[#C07C56] hover:bg-[#6F4E37] text-white"
+              className="bg-[#C07C56] text-white hover:bg-[#6F4E37]"
+              onClick={generatePdf}
             >
-              <Download className="h-4 w-4" /> {t('invoice.download')}
+              {t('delivery.downloadInvoice')}
             </Button>
           </div>
+          <div id="invoice" className="bg-white p-8 rounded-lg shadow">
+            <DeliveryInvoice data={invoiceData} />
+          </div>
+        </div>
+      ) : (
+        <div>
+          <h1 className="text-2xl font-bold mb-2 text-[#3B2F2F]">{t('delivery.details')}</h1>
           
-          {invoiceData && (
-            <DeliveryInvoice invoiceData={invoiceData} />
-          )}
-        </>
+          <Card className="mb-6 border-[#C07C56] bg-[#FAF3E0]">
+            <CardHeader>
+              <CardTitle className="text-[#6F4E37]">{t('delivery.status')}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="bg-white p-4 rounded-md">
+                <div className="flex justify-between items-center">
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium
+                    ${
+                      delivery.status === 'delivered'
+                        ? 'bg-green-100 text-green-800'
+                        : delivery.status === 'in_transit'
+                        ? 'bg-blue-100 text-blue-800'
+                        : delivery.status === 'cancelled'
+                        ? 'bg-red-100 text-red-800'
+                        : 'bg-yellow-100 text-yellow-800'
+                    }
+                  `}>
+                    {t(`deliveries.${delivery.status}`)}
+                  </span>
+                  
+                  {(delivery.status === 'pending' || delivery.status === 'in_transit') && isVendor && (
+                    <div className="flex space-x-2">
+                      {delivery.status === 'pending' && (
+                        <>
+                          <Button
+                            onClick={() => handleDeliveryAction('accept')}
+                            className="bg-[#C07C56] hover:bg-[#6F4E37] text-white"
+                          >
+                            {t('delivery.accept')}
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            onClick={() => handleDeliveryAction('reject')}
+                            className="border-[#C07C56] text-[#6F4E37]"
+                          >
+                            {t('delivery.reject')}
+                          </Button>
+                        </>
+                      )}
+                      
+                      {delivery.status === 'in_transit' && (
+                        <Button
+                          onClick={() => handleDeliveryAction('complete')}
+                          className="bg-[#C07C56] hover:bg-[#6F4E37] text-white"
+                        >
+                          {t('delivery.complete')}
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <Card className="border-[#C07C56] bg-[#FAF3E0]">
+              <CardHeader>
+                <CardTitle className="text-[#6F4E37]">{t('delivery.pickupAddress')}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="bg-white p-4 rounded-md">
+                  <p>{delivery.pickup_address}</p>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="border-[#C07C56] bg-[#FAF3E0]">
+              <CardHeader>
+                <CardTitle className="text-[#6F4E37]">{t('delivery.deliveryAddress')}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="bg-white p-4 rounded-md">
+                  <p>{delivery.drop_address}</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <Card className="border-[#C07C56] bg-[#FAF3E0]">
+              <CardHeader>
+                <CardTitle className="text-[#6F4E37]">{t('delivery.weight')}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="bg-white p-4 rounded-md">
+                  <p>{delivery.weight_kg} kg</p>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="border-[#C07C56] bg-[#FAF3E0]">
+              <CardHeader>
+                <CardTitle className="text-[#6F4E37]">{t('delivery.packageType')}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="bg-white p-4 rounded-md">
+                  <p>{t(`delivery.${(delivery.package_type || 'standard').replace('_', '')}`)}</p>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="border-[#C07C56] bg-[#FAF3E0]">
+              <CardHeader>
+                <CardTitle className="text-[#6F4E37]">{t('delivery.scheduledDate')}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="bg-white p-4 rounded-md">
+                  <p>{formatDate(delivery.scheduled_date || '')}</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          
+          <div className="flex justify-between items-center">
+            <Link to="/deliveries">
+              <Button 
+                variant="outline"
+                className="border-[#C07C56] text-[#6F4E37]"
+              >
+                {t('common.back')}
+              </Button>
+            </Link>
+            
+            {(delivery.status === 'delivered' || isAdmin) && (
+              <Button 
+                className="bg-[#C07C56] text-white hover:bg-[#6F4E37]"
+                onClick={() => setShowInvoice(true)}
+              >
+                {t('delivery.viewInvoice')}
+              </Button>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );

@@ -11,7 +11,10 @@
     "delete": "Delete",
     "back": "Back",
     "next": "Next",
-    "submit": "Submit"
+    "submit": "Submit",
+    "view": "View",
+    "processing": "Processing...",
+    "submitting": "Submitting..."
   },
   "auth": {
     "login": "Login",
@@ -106,7 +109,18 @@
     "upi": "UPI",
     "wallet": "Digital Wallet",
     "completePayment": "Complete Payment",
-    "noPayments": "No payment history available"
+    "noPayments": "No payment history available",
+    "cardNumber": "Card Number",
+    "cardName": "Name on Card",
+    "cardExpiry": "Expiry Date",
+    "cardCVC": "CVC",
+    "upiId": "UPI ID",
+    "taxes": "Taxes & Fees (18%)",
+    "total": "Total",
+    "fillCardDetails": "Please fill in all card details",
+    "fillUpiDetails": "Please enter your UPI ID",
+    "paymentSuccess": "Payment processed successfully",
+    "paymentFailed": "Payment failed. Please try again."
   },
   "invoice": {
     "invoice": "INVOICE",
@@ -138,7 +152,12 @@
     "deliveryStatus": "Delivery Status",
     "statusDistribution": "Distribution of deliveries by status",
     "packageTypes": "Package Types",
-    "packageDistribution": "Distribution of package types"
+    "packageDistribution": "Distribution of package types",
+    "analytics": "Analytics",
+    "users": "Users",
+    "weeklyRevenue": "Weekly Revenue",
+    "totalRevenue": "Total Revenue",
+    "feedback": "Feedback Received"
   },
   "vendor": {
     "dashboard": "Vendor Dashboard",
@@ -147,9 +166,29 @@
     "manageDeliveries": "Manage your assigned deliveries",
     "noAssignedDeliveries": "No deliveries assigned yet",
     "deliveriesWillAppear": "Deliveries assigned to you will appear here",
-    "viewAllDeliveries": "View All Deliveries"
+    "viewAllDeliveries": "View All Deliveries",
+    "deliveries": "Assigned Deliveries"
   },
   "language": {
     "selectLanguage": "Select Language"
+  },
+  "feedback": {
+    "title": "Feedback",
+    "subtitle": "We value your feedback to improve our services",
+    "formTitle": "Share Your Feedback",
+    "name": "Name",
+    "email": "Email",
+    "type": "Feedback Type",
+    "selectType": "Select a type of feedback",
+    "typeGeneral": "General",
+    "typeBug": "Bug Report",
+    "typeFeature": "Feature Request",
+    "typeComplaint": "Complaint",
+    "typePraise": "Praise",
+    "subject": "Subject",
+    "message": "Your Message",
+    "submit": "Submit Feedback",
+    "thankYou": "Thank you for your feedback!",
+    "fillAllFields": "Please fill in all fields"
   }
 }
