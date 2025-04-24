@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
@@ -69,7 +68,7 @@ const PaymentsPage: React.FC = () => {
       const { data, error } = await supabase
         .from('payments')
         .update({ 
-          status: 'completed',
+          status: 'successful',
           payment_method: selectedMethod
         })
         .eq('delivery_id', deliveryId)
@@ -82,7 +81,7 @@ const PaymentsPage: React.FC = () => {
       setPayments(prevPayments => 
         prevPayments.map(payment => 
           payment.delivery_id === deliveryId 
-            ? { ...payment, status: 'completed', payment_method: selectedMethod } 
+            ? { ...payment, status: 'successful', payment_method: selectedMethod } 
             : payment
         )
       );
@@ -97,7 +96,7 @@ const PaymentsPage: React.FC = () => {
 
   // Calculate total amount paid
   const totalPaid = payments
-    .filter(payment => payment.status === 'completed')
+    .filter(payment => payment.status === 'successful')
     .reduce((sum, payment) => sum + payment.amount, 0);
 
   // Calculate total pending payments

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useAuth } from '@/lib/auth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -51,7 +50,10 @@ const VendorDashboardPage: React.FC = () => {
           if (error) throw error;
           
           if (data) {
-            setDeliveries(data as Delivery[]);
+            setDeliveries(data.map(delivery => ({
+              ...delivery,
+              package_type: delivery.package_type || 'standard'
+            })) as Delivery[]);
             
             // Calculate stats
             const newStats = data.reduce((acc: VendorStats, delivery) => {

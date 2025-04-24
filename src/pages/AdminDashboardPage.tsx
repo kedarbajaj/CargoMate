@@ -1,190 +1,121 @@
-
 import React, { useEffect, useState } from 'react';
-import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { supabase } from '@/integrations/supabase/client';
+import { Doughnut } from 'react-chartjs-2';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
+import { useTranslation } from 'react-i18next';
+
+ChartJS.register(ArcElement, Tooltip, Legend);
 
 const AdminDashboardPage: React.FC = () => {
-  const [deliveryStats, setDeliveryStats] = useState({
-    pending: 0,
-    in_transit: 0,
-    delivered: 0,
-    cancelled: 0,
-    total: 0
-  });
-  const [loading, setLoading] = useState(true);
-  const [packageTypeData, setPackageTypeData] = useState<any[]>([]);
-  
+  const [totalDeliveries, setTotalDeliveries] = useState(0);
+  const [deliveryStatusData, setDeliveryStatusData] = useState<{ [key: string]: number }>({});
+  const [packageTypeData, setPackageTypeData] = useState<{ [key: string]: number }>({});
+  const { t } = useTranslation();
+
   useEffect(() => {
-    const fetchStats = async () => {
-      setLoading(true);
+    const fetchDashboardData = async () => {
       try {
-        // Fetch delivery statistics
-        const { data: deliveries, error } = await supabase
+        // Fetch total deliveries
+        const { count: deliveriesCount, error: deliveriesError } = await supabase
           .from('deliveries')
-          .select('status, package_type');
-          
-        if (error) throw error;
-        
-        if (deliveries) {
-          // Count deliveries by status
-          const stats = {
-            pending: 0,
-            in_transit: 0,
-            delivered: 0,
-            cancelled: 0,
-            total: deliveries.length
-          };
-          
-          // Count package types for chart
-          const packageTypes: Record<string, number> = {};
-          
-          deliveries.forEach(delivery => {
-            // Count by status
-            if (delivery.status) {
-              stats[delivery.status as keyof typeof stats] = 
-                (stats[delivery.status as keyof typeof stats] || 0) + 1;
-            }
-            
-            // Count by package type
-            const packageType = delivery.package_type || 'standard';
-            packageTypes[packageType] = (packageTypes[packageType] || 0) + 1;
-          });
-          
-          setDeliveryStats(stats);
-          
-          // Format package type data for chart
-          const packageTypeArray = Object.entries(packageTypes).map(([name, value]) => ({
-            name,
-            value
-          }));
-          
-          setPackageTypeData(packageTypeArray);
-        }
+          .select('*', { count: 'exact', head: true });
+
+        if (deliveriesError) throw deliveriesError;
+        setTotalDeliveries(deliveriesCount || 0);
+
+        // Fetch delivery status distribution
+        const { data: statusData, error: statusError } = await supabase
+          .from('deliveries')
+          .select('status');
+
+        if (statusError) throw statusError;
+
+        const statusCounts: { [key: string]: number } = {};
+        statusData?.forEach(delivery => {
+          statusCounts[delivery.status] = (statusCounts[delivery.status] || 0) + 1;
+        });
+        setDeliveryStatusData(statusCounts);
+
+        // Fetch package type distribution
+        const { data: packageData, error: packageError } = await supabase
+          .from('deliveries')
+          .select('package_type');
+
+        if (packageError) throw packageError;
+
+        const packageCounts: { [key: string]: number } = {};
+         packageData?.forEach(delivery => {
+            const packageType = delivery.package_type || 'standard'; // Provide a default value
+            packageCounts[packageType] = (packageCounts[packageType] || 0) + 1;
+        });
+        setPackageTypeData(packageCounts);
       } catch (error) {
-        console.error('Error fetching admin statistics:', error);
-      } finally {
-        setLoading(false);
+        console.error('Error fetching dashboard data:', error);
       }
     };
-    
-    fetchStats();
+
+    fetchDashboardData();
   }, []);
-  
-  const deliveryData = [
-    { name: 'Pending', value: deliveryStats.pending },
-    { name: 'In Transit', value: deliveryStats.in_transit },
-    { name: 'Delivered', value: deliveryStats.delivered },
-    { name: 'Cancelled', value: deliveryStats.cancelled },
-  ];
-  
-  const COLORS = ['#C07C56', '#6F4E37', '#FAF3E0', '#3B2F2F'];
-  
+
+  // Prepare data for charts
+  const deliveryStatusChartData = {
+    labels: Object.keys(deliveryStatusData).map(status => t(`deliveries.${status}`)),
+    datasets: [
+      {
+        label: t('admin.deliveryStatus'),
+        data: Object.values(deliveryStatusData),
+        backgroundColor: [
+          'rgba(255, 99, 132, 0.6)',
+          'rgba(54, 162, 235, 0.6)',
+          'rgba(255, 206, 86, 0.6)',
+          'rgba(75, 192, 192, 0.6)',
+          'rgba(153, 102, 255, 0.6)',
+        ],
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  const packageTypeChartData = {
+    labels: Object.keys(packageTypeData).map(type => t(`delivery.${type?.replace('_', '')}`)),
+    datasets: [
+      {
+        label: t('admin.packageTypes'),
+        data: Object.values(packageTypeData),
+        backgroundColor: [
+          'rgba(255, 99, 132, 0.6)',
+          'rgba(54, 162, 235, 0.6)',
+          'rgba(255, 206, 86, 0.6)',
+          'rgba(75, 192, 192, 0.6)',
+          'rgba(153, 102, 255, 0.6)',
+        ],
+        borderWidth: 1,
+      },
+    ],
+  };
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-        <p className="text-muted-foreground">Monitor all delivery activities and manage system operations</p>
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4 text-[#3B2F2F]">{t('admin.dashboard')}</h1>
+      <p className="text-muted-foreground">{t('admin.subtitle')}</p>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+        <div className="bg-card rounded-lg shadow p-4">
+          <h2 className="text-lg font-semibold text-[#6F4E37]">{t('admin.totalDeliveries')}</h2>
+          <p className="text-3xl font-bold text-gray-800">{totalDeliveries}</p>
+        </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total Deliveries</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{loading ? "..." : deliveryStats.total}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Pending</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{loading ? "..." : deliveryStats.pending}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">In Transit</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{loading ? "..." : deliveryStats.in_transit}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Delivered</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{loading ? "..." : deliveryStats.delivered}</div>
-          </CardContent>
-        </Card>
-      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+        <div className="bg-card rounded-lg shadow p-4">
+          <h2 className="text-lg font-semibold text-[#6F4E37]">{t('admin.deliveryStatus')}</h2>
+          <Doughnut data={deliveryStatusChartData} />
+        </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Delivery Status</CardTitle>
-            <CardDescription>Distribution of deliveries by status</CardDescription>
-          </CardHeader>
-          <CardContent className="pl-2">
-            <div className="h-80 w-full">
-              {loading ? (
-                <div className="flex h-full items-center justify-center">Loading chart data...</div>
-              ) : (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={deliveryData}
-                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="value" fill="#C07C56" name="Deliveries" />
-                  </BarChart>
-                </ResponsiveContainer>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Package Types</CardTitle>
-            <CardDescription>Distribution of package types</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-80 w-full">
-              {loading ? (
-                <div className="flex h-full items-center justify-center">Loading chart data...</div>
-              ) : (
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={packageTypeData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {packageTypeData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+        <div className="bg-card rounded-lg shadow p-4">
+          <h2 className="text-lg font-semibold text-[#6F4E37]">{t('admin.packageTypes')}</h2>
+          <Doughnut data={packageTypeChartData} />
+        </div>
       </div>
     </div>
   );

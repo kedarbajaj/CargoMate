@@ -1,4 +1,3 @@
-
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
  
@@ -61,4 +60,9 @@ export function formatCurrency(amount: number, currency: string = 'USD'): string
     style: 'currency',
     currency: currency,
   }).format(amount);
+}
+
+export function capitalizeFirstLetter(string: string): string {
+  if (!string) return '';
+  return string.charAt(0).toUpperCase() + string.slice(1);
 }
