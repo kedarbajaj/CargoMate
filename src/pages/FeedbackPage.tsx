@@ -32,16 +32,13 @@ const FeedbackPage: React.FC = () => {
     setIsSubmitting(true);
     
     try {
-      // Store feedback in the database
+      // Store feedback in notifications table since we don't have a dedicated feedback table
       const { error: dbError } = await supabase
-        .from('feedback')
+        .from('notifications')
         .insert({
-          name,
-          email,
-          feedback_type: feedbackType,
-          subject,
-          message,
-          user_id: user?.id || null
+          user_id: user?.id || null,
+          message: `Feedback (${feedbackType}): ${subject} - from ${name} (${email})`,
+          status: 'unread'
         });
       
       if (dbError) throw dbError;

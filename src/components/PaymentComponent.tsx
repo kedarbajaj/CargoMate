@@ -16,12 +16,16 @@ interface PaymentComponentProps {
   deliveryId?: string;
   amount: number;
   onSuccess?: () => void;
+  onClose?: () => void;
+  onPaymentComplete?: (success: boolean) => void;
 }
 
 const PaymentComponent: React.FC<PaymentComponentProps> = ({ 
   deliveryId, 
   amount, 
-  onSuccess 
+  onSuccess,
+  onClose,
+  onPaymentComplete
 }) => {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('CreditCard');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -74,9 +78,19 @@ const PaymentComponent: React.FC<PaymentComponentProps> = ({
       if (onSuccess) {
         onSuccess();
       }
+      
+      // Call payment complete callback if provided
+      if (onPaymentComplete) {
+        onPaymentComplete(true);
+      }
     } catch (error) {
       console.error('Payment error:', error);
       toast.error(t('payments.paymentFailed'));
+      
+      // Call payment complete callback with failure if provided
+      if (onPaymentComplete) {
+        onPaymentComplete(false);
+      }
     } finally {
       setIsProcessing(false);
     }
@@ -237,13 +251,25 @@ const PaymentComponent: React.FC<PaymentComponentProps> = ({
             </div>
           </div>
           
-          <Button 
-            type="submit" 
-            className="w-full mt-6 bg-[#C07C56] hover:bg-[#6F4E37] text-white"
-            disabled={isProcessing}
-          >
-            {isProcessing ? t('common.processing') : t('payments.completePayment')}
-          </Button>
+          <div className="flex gap-4 mt-6">
+            {onClose && (
+              <Button 
+                type="button" 
+                className="w-1/2 bg-gray-300 hover:bg-gray-400 text-gray-800"
+                onClick={onClose}
+              >
+                {t('common.cancel')}
+              </Button>
+            )}
+            
+            <Button 
+              type="submit" 
+              className={`bg-[#C07C56] hover:bg-[#6F4E37] text-white ${onClose ? 'w-1/2' : 'w-full'}`}
+              disabled={isProcessing}
+            >
+              {isProcessing ? t('common.processing') : t('payments.completePayment')}
+            </Button>
+          </div>
         </form>
       </CardContent>
     </Card>
