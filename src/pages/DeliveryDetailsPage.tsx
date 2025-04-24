@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
@@ -21,7 +20,7 @@ interface Delivery {
   created_at: string;
   user_id: string;
   vendor_id: string;
-  package_type: string;
+  package_type?: string;
 }
 
 interface UserProfile {

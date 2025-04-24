@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Doughnut } from 'react-chartjs-2';
@@ -5,6 +6,12 @@ import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { useTranslation } from 'react-i18next';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
+
+interface Delivery {
+  id: string;
+  status: string;
+  package_type?: string;
+}
 
 const AdminDashboardPage: React.FC = () => {
   const [totalDeliveries, setTotalDeliveries] = useState(0);
@@ -44,9 +51,9 @@ const AdminDashboardPage: React.FC = () => {
         if (packageError) throw packageError;
 
         const packageCounts: { [key: string]: number } = {};
-         packageData?.forEach(delivery => {
-            const packageType = delivery.package_type || 'standard'; // Provide a default value
-            packageCounts[packageType] = (packageCounts[packageType] || 0) + 1;
+        packageData?.forEach((delivery: Delivery) => {
+          const packageType = delivery.package_type || 'standard'; // Provide a default value
+          packageCounts[packageType] = (packageCounts[packageType] || 0) + 1;
         });
         setPackageTypeData(packageCounts);
       } catch (error) {
