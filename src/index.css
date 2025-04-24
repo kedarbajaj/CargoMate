@@ -5,14 +5,15 @@
 
 @layer base {
   :root {
-    --background: 200 20% 95%; /* Soft Blue Gray */
-    --foreground: 220 15% 20%; /* Dark Navy */
+    /* Light Mode Colors */
+    --background: 210 20% 98%; /* Very Light Blue Gray */
+    --foreground: 220 15% 20%; /* Deep Navy */
 
-    --card: 200 20% 95%; /* Soft Blue Gray */
-    --card-foreground: 220 15% 20%; /* Dark Navy */
+    --card: 210 20% 98%; /* Very Light Blue Gray */
+    --card-foreground: 220 15% 20%; /* Deep Navy */
 
-    --popover: 200 20% 95%; /* Soft Blue Gray */
-    --popover-foreground: 220 15% 20%; /* Dark Navy */
+    --popover: 210 20% 98%; /* Very Light Blue Gray */
+    --popover-foreground: 220 15% 20%; /* Deep Navy */
 
     --primary: 210 77% 55%; /* Vibrant Blue */
     --primary-foreground: 0 0% 100%; /* Pure White */
@@ -34,35 +35,27 @@
     --ring: 210 77% 55%; /* Vibrant Blue */
 
     --radius: 0.5rem;
-
-    --sidebar-background: 220 13% 35%; /* Deep Navy */
-    --sidebar-foreground: 0 0% 98%; /* Almost White */
-    --sidebar-primary: 210 77% 55%; /* Vibrant Blue */
-    --sidebar-primary-foreground: 0 0% 100%; /* Pure White */
-    --sidebar-accent: 190 95% 45%; /* Bright Teal */
-    --sidebar-accent-foreground: 0 0% 100%; /* Pure White */
-    --sidebar-border: 210 20% 80%; /* Light Blue Gray */
-    --sidebar-ring: 210 77% 55%; /* Vibrant Blue */
   }
 
   .dark {
-    --background: 220 15% 20%; /* Dark Navy */
-    --foreground: 200 20% 95%; /* Soft Blue Gray */
+    /* Dark Mode Colors */
+    --background: 220 15% 15%; /* Very Dark Navy */
+    --foreground: 210 20% 95%; /* Soft Blue Gray */
 
-    --card: 220 15% 20%; /* Dark Navy */
-    --card-foreground: 200 20% 95%; /* Soft Blue Gray */
+    --card: 220 15% 15%; /* Very Dark Navy */
+    --card-foreground: 210 20% 95%; /* Soft Blue Gray */
 
-    --popover: 220 15% 20%; /* Dark Navy */
-    --popover-foreground: 200 20% 95%; /* Soft Blue Gray */
+    --popover: 220 15% 15%; /* Very Dark Navy */
+    --popover-foreground: 210 20% 95%; /* Soft Blue Gray */
 
     --primary: 210 77% 55%; /* Vibrant Blue */
     --primary-foreground: 0 0% 100%; /* Pure White */
 
-    --secondary: 200 20% 95%; /* Soft Blue Gray */
-    --secondary-foreground: 220 15% 20%; /* Dark Navy */
+    --secondary: 220 15% 25%; /* Slightly Lighter Dark Navy */
+    --secondary-foreground: 210 20% 95%; /* Soft Blue Gray */
 
     --muted: 220 10% 30%; /* Dark Slate Gray */
-    --muted-foreground: 200 20% 90%; /* Light Blue Gray */
+    --muted-foreground: 210 20% 90%; /* Light Blue Gray */
 
     --accent: 190 95% 45%; /* Bright Teal */
     --accent-foreground: 0 0% 100%; /* Pure White */
@@ -73,14 +66,5 @@
     --border: 220 15% 30%; /* Darker Navy */
     --input: 220 15% 30%; /* Darker Navy */
     --ring: 210 77% 55%; /* Vibrant Blue */
-
-    --sidebar-background: 220 15% 20%; /* Dark Navy */
-    --sidebar-foreground: 200 20% 95%; /* Soft Blue Gray */
-    --sidebar-primary: 210 77% 55%; /* Vibrant Blue */
-    --sidebar-primary-foreground: 0 0% 100%; /* Pure White */
-    --sidebar-accent: 190 95% 45%; /* Bright Teal */
-    --sidebar-accent-foreground: 0 0% 100%; /* Pure White */
-    --sidebar-border: 220 15% 30%; /* Darker Navy */
-    --sidebar-ring: 210 77% 55%; /* Vibrant Blue */
   }
 }
