@@ -1,128 +1,108 @@
 
-import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/lib/auth';
-import { formatDate, formatCurrency } from '@/lib/utils';
-import DeliveryInvoice from '@/components/invoice/DeliveryInvoice';
 import { toast } from 'sonner';
-import { Delivery, UserProfile } from '@/types/delivery';
+import { useAuth } from '@/lib/auth';
+import { Delivery, Payment, UserProfile } from '@/types/delivery';
 import { useTranslation } from 'react-i18next';
-import html2pdf from 'html2pdf.js';
+import DeliveryInvoice from '@/components/invoice/DeliveryInvoice';
 
 const DeliveryDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const [delivery, setDelivery] = useState<Delivery | null>(null);
-  const [user, setUser] = useState<UserProfile | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [showInvoice, setShowInvoice] = useState(false);
-  const { user: authUser, isVendor, isAdmin } = useAuth();
+  const { user, isVendor } = useAuth();
   const { t } = useTranslation();
+  const [delivery, setDelivery] = useState<Delivery | null>(null);
+  const [payment, setPayment] = useState<Payment | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [viewInvoice, setViewInvoice] = useState(false);
 
   useEffect(() => {
-    const fetchDelivery = async () => {
-      setIsLoading(true);
-      try {
-        if (!id) return;
+    const fetchDeliveryDetails = async () => {
+      if (!id) return;
 
-        const { data, error } = await supabase
+      try {
+        // Fetch delivery details
+        const { data: deliveryData, error: deliveryError } = await supabase
           .from('deliveries')
           .select('*')
           .eq('id', id)
           .single();
 
-        if (error) throw error;
-        setDelivery(data as Delivery);
+        if (deliveryError) throw deliveryError;
 
-        // Fetch the user details of who placed the order
-        if (data.user_id) {
+        setDelivery(deliveryData);
+
+        // Fetch payment info
+        const { data: paymentData, error: paymentError } = await supabase
+          .from('payments')
+          .select('*')
+          .eq('delivery_id', id)
+          .maybeSingle();
+
+        if (!paymentError && paymentData) {
+          setPayment(paymentData);
+        }
+
+        // If delivery exists, fetch user profile
+        if (deliveryData && deliveryData.user_id) {
           const { data: userData, error: userError } = await supabase
             .from('users')
-            .select('*')
-            .eq('id', data.user_id)
+            .select('name, email, phone')
+            .eq('id', deliveryData.user_id)
             .single();
 
-          if (userError) throw userError;
-          setUser(userData);
+          if (!userError && userData) {
+            setUserProfile(userData);
+          }
         }
       } catch (error) {
         console.error('Error fetching delivery details:', error);
         toast.error(t('common.error'));
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
     };
 
-    fetchDelivery();
+    fetchDeliveryDetails();
   }, [id, t]);
 
-  const handleDeliveryAction = async (action: 'accept' | 'reject' | 'complete') => {
+  const handleStatusChange = async (newStatus: string) => {
     try {
       if (!delivery) return;
 
-      // Call Supabase Edge Function to handle delivery actions
-      const { data, error } = await supabase.functions.invoke('handle-delivery-action', {
-        body: {
-          deliveryId: delivery.id,
-          action,
-          vendorId: authUser?.id
-        }
-      });
+      const { error } = await supabase
+        .from('deliveries')
+        .update({ status: newStatus })
+        .eq('id', delivery.id);
 
       if (error) throw error;
 
-      // Update the local state with the new status
-      setDelivery(prev => {
-        if (!prev) return null;
-        let newStatus = prev.status;
+      setDelivery({ ...delivery, status: newStatus as any });
 
-        switch (action) {
-          case 'accept':
-            newStatus = 'in_transit';
-            break;
-          case 'reject':
-            newStatus = 'cancelled';
-            break;
-          case 'complete':
-            newStatus = 'delivered';
-            break;
-        }
-
-        return { ...prev, status: newStatus };
+      // Notify the user via serverless function
+      await supabase.functions.invoke('handle-delivery-action', {
+        body: {
+          deliveryId: delivery.id,
+          action: newStatus,
+          userId: delivery.user_id,
+        },
       });
 
-      toast.success(data.message || t('common.success'));
+      toast.success(`${t('common.success')}! ${t('delivery.status')} ${t(`deliveries.${newStatus}`)}`);
     } catch (error) {
-      console.error('Error performing action:', error);
+      console.error('Error updating delivery status:', error);
       toast.error(t('common.error'));
     }
   };
 
-  const generatePdf = () => {
-    if (!delivery || !user) return;
-
-    const element = document.getElementById('invoice');
-    
-    if (element) {
-      const opt = {
-        margin: 1,
-        filename: `invoice-${delivery.id.substr(0, 8)}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      };
-      
-      html2pdf().set(opt).from(element).save();
-    }
-  };
-
-  if (isLoading) {
+  if (loading) {
     return (
-      <div className="flex justify-center items-center h-full p-8">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-t-2 border-[#C07C56]"></div>
-        <p className="ml-3 text-[#6F4E37]">{t('common.loading')}</p>
+      <div className="flex items-center justify-center h-full">
+        <div className="h-8 w-8 border-4 border-t-primary border-primary/30 rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -130,204 +110,162 @@ const DeliveryDetailsPage: React.FC = () => {
   if (!delivery) {
     return (
       <div className="container mx-auto p-4">
-        <div className="bg-red-100 border border-red-400 text-red-700 p-4 rounded">
-          <p>{t('common.error')}</p>
-          <Link to="/deliveries" className="text-red-700 font-semibold hover:underline mt-2 block">
-            {t('common.back')}
-          </Link>
-        </div>
+        <Card className="bg-[#FAF3E0] border-[#C07C56]">
+          <CardContent className="p-8 text-center">
+            <h2 className="text-xl font-bold text-[#6F4E37] mb-2">
+              {t('common.error')}
+            </h2>
+            <p>{t('deliveries.noDeliveries')}</p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
-  // For the invoice, calculate an approximate amount based on weight
-  const calculateAmount = () => {
-    const baseRate = 100; // ₹100 base rate
-    const weightRate = 50; // ₹50 per kg
-    
-    return baseRate + (delivery.weight_kg || 0) * weightRate;
-  };
+  // Check if the user is authorized to view this delivery
+  const isAuthorized = 
+    user?.id === delivery.user_id || 
+    (isVendor && user?.id === delivery.vendor_id);
 
-  const amount = calculateAmount();
-
-  // Prepare invoice data
-  const invoiceData = {
+  // Prepare invoice data if payment exists
+  const invoiceData = payment && userProfile ? {
     id: delivery.id,
     created_at: delivery.created_at || new Date().toISOString(),
     user: {
-      name: user?.name || 'Customer',
-      email: user?.email || 'No Email Provided',
-      phone: user?.phone || 'No Phone Provided'
+      name: userProfile.name || '',
+      email: userProfile.email || '',
+      phone: userProfile.phone || '',
     },
     pickup_address: delivery.pickup_address || '',
     drop_address: delivery.drop_address || '',
     weight_kg: delivery.weight_kg || 0,
-    package_type: delivery.package_type || 'standard',
-    amount: amount
-  };
+    package_type: delivery.package_type || 'Standard',
+    amount: payment.amount || 0,
+  } : null;
 
   return (
     <div className="container mx-auto p-4">
-      {showInvoice ? (
-        <div className="flex flex-col">
-          <div className="flex justify-between mb-4">
-            <Button 
-              variant="outline"
-              className="border-[#C07C56] text-[#6F4E37]"
-              onClick={() => setShowInvoice(false)}
-            >
-              {t('delivery.backToDetails')}
-            </Button>
-            <Button 
-              className="bg-[#C07C56] text-white hover:bg-[#6F4E37]"
-              onClick={generatePdf}
-            >
-              {t('delivery.downloadInvoice')}
-            </Button>
+      {!viewInvoice ? (
+        <>
+          <div className="flex justify-between items-center mb-4">
+            <h1 className="text-2xl font-bold text-[#3B2F2F]">{t('delivery.details')}</h1>
+            {payment && invoiceData && (
+              <Button 
+                onClick={() => setViewInvoice(true)}
+                className="bg-[#C07C56] hover:bg-[#6F4E37]"
+              >
+                {t('delivery.viewInvoice')}
+              </Button>
+            )}
           </div>
-          <div id="invoice" className="bg-white p-8 rounded-lg shadow">
-            <DeliveryInvoice data={invoiceData} />
-          </div>
-        </div>
-      ) : (
-        <div>
-          <h1 className="text-2xl font-bold mb-2 text-[#3B2F2F]">{t('delivery.details')}</h1>
-          
-          <Card className="mb-6 border-[#C07C56] bg-[#FAF3E0]">
+
+          <Card className="bg-[#FAF3E0] border-[#C07C56] mb-6">
             <CardHeader>
-              <CardTitle className="text-[#6F4E37]">{t('delivery.status')}</CardTitle>
+              <CardTitle className="text-[#6F4E37]">{t('delivery.details')}</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="bg-white p-4 rounded-md">
-                <div className="flex justify-between items-center">
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium
-                    ${
-                      delivery.status === 'delivered'
-                        ? 'bg-green-100 text-green-800'
-                        : delivery.status === 'in_transit'
-                        ? 'bg-blue-100 text-blue-800'
-                        : delivery.status === 'cancelled'
-                        ? 'bg-red-100 text-red-800'
-                        : 'bg-yellow-100 text-yellow-800'
-                    }
-                  `}>
-                    {t(`deliveries.${delivery.status}`)}
-                  </span>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <h3 className="font-semibold mb-1">{t('delivery.pickupAddress')}</h3>
+                  <p className="mb-4">{delivery.pickup_address}</p>
                   
-                  {(delivery.status === 'pending' || delivery.status === 'in_transit') && isVendor && (
-                    <div className="flex space-x-2">
-                      {delivery.status === 'pending' && (
-                        <>
-                          <Button
-                            onClick={() => handleDeliveryAction('accept')}
-                            className="bg-[#C07C56] hover:bg-[#6F4E37] text-white"
-                          >
-                            {t('delivery.accept')}
-                          </Button>
-                          <Button 
-                            variant="outline" 
-                            onClick={() => handleDeliveryAction('reject')}
-                            className="border-[#C07C56] text-[#6F4E37]"
-                          >
-                            {t('delivery.reject')}
-                          </Button>
-                        </>
-                      )}
-                      
-                      {delivery.status === 'in_transit' && (
-                        <Button
-                          onClick={() => handleDeliveryAction('complete')}
-                          className="bg-[#C07C56] hover:bg-[#6F4E37] text-white"
-                        >
-                          {t('delivery.complete')}
-                        </Button>
-                      )}
-                    </div>
+                  <h3 className="font-semibold mb-1">{t('delivery.deliveryAddress')}</h3>
+                  <p className="mb-4">{delivery.drop_address}</p>
+                </div>
+                
+                <div>
+                  <h3 className="font-semibold mb-1">{t('delivery.packageType')}</h3>
+                  <p className="mb-4">{delivery.package_type}</p>
+                  
+                  <h3 className="font-semibold mb-1">{t('delivery.weight')}</h3>
+                  <p className="mb-4">{delivery.weight_kg} kg</p>
+                  
+                  <h3 className="font-semibold mb-1">{t('delivery.status')}</h3>
+                  <div className="mb-4">
+                    <span className={`px-2 py-1 rounded text-white ${
+                      delivery.status === 'pending' ? 'bg-yellow-500' :
+                      delivery.status === 'in_transit' ? 'bg-blue-500' :
+                      delivery.status === 'delivered' ? 'bg-green-500' :
+                      'bg-red-500'
+                    }`}>
+                      {t(`deliveries.${delivery.status}`)}
+                    </span>
+                  </div>
+                  
+                  <h3 className="font-semibold mb-1">{t('delivery.createdAt')}</h3>
+                  <p className="mb-4">
+                    {delivery.created_at 
+                      ? new Date(delivery.created_at).toLocaleDateString() 
+                      : '-'}
+                  </p>
+                  
+                  {delivery.scheduled_date && (
+                    <>
+                      <h3 className="font-semibold mb-1">{t('delivery.scheduledDate')}</h3>
+                      <p className="mb-4">
+                        {new Date(delivery.scheduled_date).toLocaleDateString()}
+                      </p>
+                    </>
                   )}
                 </div>
               </div>
             </CardContent>
           </Card>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <Card className="border-[#C07C56] bg-[#FAF3E0]">
+          {/* Status action buttons for vendors */}
+          {isVendor && (
+            <Card className="bg-[#FAF3E0] border-[#C07C56] mb-6">
               <CardHeader>
-                <CardTitle className="text-[#6F4E37]">{t('delivery.pickupAddress')}</CardTitle>
+                <CardTitle className="text-[#6F4E37]">{t('vendor.manageDeliveries')}</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="bg-white p-4 rounded-md">
-                  <p>{delivery.pickup_address}</p>
+                <div className="flex flex-wrap gap-3">
+                  {delivery.status === 'pending' && (
+                    <>
+                      <Button 
+                        onClick={() => handleStatusChange('in_transit')}
+                        className="bg-blue-500 hover:bg-blue-600"
+                      >
+                        {t('delivery.accept')}
+                      </Button>
+                      <Button 
+                        onClick={() => handleStatusChange('cancelled')}
+                        variant="destructive"
+                      >
+                        {t('delivery.reject')}
+                      </Button>
+                    </>
+                  )}
+                  
+                  {delivery.status === 'in_transit' && (
+                    <Button 
+                      onClick={() => handleStatusChange('delivered')}
+                      className="bg-green-500 hover:bg-green-600"
+                    >
+                      {t('delivery.complete')}
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>
-            
-            <Card className="border-[#C07C56] bg-[#FAF3E0]">
-              <CardHeader>
-                <CardTitle className="text-[#6F4E37]">{t('delivery.deliveryAddress')}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="bg-white p-4 rounded-md">
-                  <p>{delivery.drop_address}</p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          )}
+        </>
+      ) : (
+        <>
+          <Button 
+            onClick={() => setViewInvoice(false)} 
+            variant="outline" 
+            className="mb-4 border-[#C07C56] text-[#6F4E37]"
+          >
+            ← {t('delivery.backToDetails')}
+          </Button>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            <Card className="border-[#C07C56] bg-[#FAF3E0]">
-              <CardHeader>
-                <CardTitle className="text-[#6F4E37]">{t('delivery.weight')}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="bg-white p-4 rounded-md">
-                  <p>{delivery.weight_kg} kg</p>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="border-[#C07C56] bg-[#FAF3E0]">
-              <CardHeader>
-                <CardTitle className="text-[#6F4E37]">{t('delivery.packageType')}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="bg-white p-4 rounded-md">
-                  <p>{t(`delivery.${(delivery.package_type || 'standard').replace('_', '')}`)}</p>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="border-[#C07C56] bg-[#FAF3E0]">
-              <CardHeader>
-                <CardTitle className="text-[#6F4E37]">{t('delivery.scheduledDate')}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="bg-white p-4 rounded-md">
-                  <p>{formatDate(delivery.scheduled_date || '')}</p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          <h1 className="text-2xl font-bold mb-4 text-[#3B2F2F]">{t('invoice.invoice')}</h1>
           
-          <div className="flex justify-between items-center">
-            <Link to="/deliveries">
-              <Button 
-                variant="outline"
-                className="border-[#C07C56] text-[#6F4E37]"
-              >
-                {t('common.back')}
-              </Button>
-            </Link>
-            
-            {(delivery.status === 'delivered' || isAdmin) && (
-              <Button 
-                className="bg-[#C07C56] text-white hover:bg-[#6F4E37]"
-                onClick={() => setShowInvoice(true)}
-              >
-                {t('delivery.viewInvoice')}
-              </Button>
-            )}
-          </div>
-        </div>
+          {invoiceData && (
+            <DeliveryInvoice data={invoiceData} />
+          )}
+        </>
       )}
     </div>
   );

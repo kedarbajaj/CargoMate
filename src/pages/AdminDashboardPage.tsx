@@ -1,244 +1,204 @@
 
 import React, { useEffect, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { Doughnut } from 'react-chartjs-2';
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
-import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Delivery } from '@/types/delivery';
+import { Bar, Pie } from 'react-chartjs-2';
+import { useTranslation } from 'react-i18next';
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip as RechartsTooltip,
-} from 'recharts';
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+} from 'chart.js';
+import { supabase } from '@/integrations/supabase/client';
+import { Delivery, Payment } from '@/types/delivery';
 
-ChartJS.register(ArcElement, Tooltip, Legend);
+// Register Chart.js components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement
+);
 
-const AdminDashboardPage: React.FC = () => {
-  const [totalDeliveries, setTotalDeliveries] = useState(0);
-  const [deliveryStatusData, setDeliveryStatusData] = useState<{ [key: string]: number }>({});
-  const [packageTypeData, setPackageTypeData] = useState<{ [key: string]: number }>({});
-  const [revenueData, setRevenueData] = useState<{name: string, amount: number}[]>([]);
-  const [feedbackCount, setFeedbackCount] = useState(0);
+const AdminDashboardPage = () => {
   const { t } = useTranslation();
+  const [deliveries, setDeliveries] = useState<Delivery[]>([]);
+  const [payments, setPayments] = useState<Payment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [feedbackCount, setFeedbackCount] = useState(0);
 
   useEffect(() => {
-    const fetchDashboardData = async () => {
+    const fetchData = async () => {
       try {
-        // Fetch total deliveries
-        const { count: deliveriesCount, error: deliveriesError } = await supabase
+        // Fetch deliveries
+        const { data: deliveryData, error: deliveryError } = await supabase
           .from('deliveries')
-          .select('*', { count: 'exact', head: true });
+          .select('*')
+          .order('created_at', { ascending: false });
 
-        if (deliveriesError) throw deliveriesError;
-        setTotalDeliveries(deliveriesCount || 0);
+        if (deliveryError) throw deliveryError;
+        setDeliveries(deliveryData || []);
 
-        // Fetch delivery status distribution
-        const { data: statusData, error: statusError } = await supabase
-          .from('deliveries')
-          .select('status');
-
-        if (statusError) throw statusError;
-
-        const statusCounts: { [key: string]: number } = {};
-        statusData?.forEach((delivery: Delivery) => {
-          statusCounts[delivery.status] = (statusCounts[delivery.status] || 0) + 1;
-        });
-        setDeliveryStatusData(statusCounts);
-
-        // Fetch package type distribution
-        const { data: packageData, error: packageError } = await supabase
-          .from('deliveries')
-          .select('package_type');
-
-        if (packageError) throw packageError;
-
-        const packageCounts: { [key: string]: number } = {};
-        packageData?.forEach((delivery: any) => {
-          const packageType = delivery.package_type || 'standard'; // Provide a default value
-          packageCounts[packageType] = (packageCounts[packageType] || 0) + 1;
-        });
-        setPackageTypeData(packageCounts);
-
-        // Fetch payment data for revenue analytics
+        // Fetch payments
         const { data: paymentData, error: paymentError } = await supabase
           .from('payments')
-          .select('amount, created_at, status')
-          .eq('status', 'completed');
+          .select('*')
+          .order('created_at', { ascending: false });
 
         if (paymentError) throw paymentError;
+        setPayments(paymentData || []);
 
-        // Process payment data for weekly revenue
-        const weekly: {[key: string]: number} = {};
-        const now = new Date();
-        
-        // Set up last 7 days
-        for (let i = 6; i >= 0; i--) {
-          const date = new Date();
-          date.setDate(now.getDate() - i);
-          const dayStr = date.toLocaleDateString('en-US', { weekday: 'short' });
-          weekly[dayStr] = 0;
+        // Count recent feedback
+        try {
+          // Just to avoid errors, let's check if the table exists first by querying notifications
+          const { count, error: feedbackError } = await supabase
+            .from('notifications')
+            .select('*', { count: 'exact' })
+            .eq('status', 'unread');
+            
+          if (feedbackError) throw feedbackError;
+          setFeedbackCount(count || 0);
+        } catch (error) {
+          console.error('Error fetching feedback count:', error);
+          setFeedbackCount(0);
         }
 
-        // Fill with actual data
-        paymentData?.forEach((payment: any) => {
-          if (payment.amount && payment.created_at) {
-            const paymentDate = new Date(payment.created_at);
-            // Only include payments from the last 7 days
-            const daysDiff = Math.floor((now.getTime() - paymentDate.getTime()) / (1000 * 3600 * 24));
-            if (daysDiff < 7) {
-              const dayStr = paymentDate.toLocaleDateString('en-US', { weekday: 'short' });
-              weekly[dayStr] = (weekly[dayStr] || 0) + payment.amount;
-            }
-          }
-        });
-
-        // Convert to array format for recharts
-        const revenueArray = Object.keys(weekly).map(key => ({
-          name: key,
-          amount: Math.round(weekly[key])
-        }));
-        
-        setRevenueData(revenueArray);
-
-        // Fetch feedback count
-        const { count: feedbackTotal, error: feedbackError } = await supabase
-          .from('feedback')
-          .select('*', { count: 'exact', head: true });
-
-        if (!feedbackError) {
-          setFeedbackCount(feedbackTotal || 0);
-        }
-
+        setLoading(false);
       } catch (error) {
-        console.error('Error fetching dashboard data:', error);
+        console.error('Error fetching admin dashboard data:', error);
+        setLoading(false);
       }
     };
 
-    fetchDashboardData();
+    fetchData();
   }, []);
 
-  // Prepare data for charts
-  const deliveryStatusChartData = {
-    labels: Object.keys(deliveryStatusData).map(status => t(`deliveries.${status}`)),
+  // Calculate analytics values
+  const totalDeliveries = deliveries.length;
+  const pendingCount = deliveries.filter(delivery => delivery.status === 'pending').length;
+  const inTransitCount = deliveries.filter(delivery => delivery.status === 'in_transit').length;
+  const deliveredCount = deliveries.filter(delivery => delivery.status === 'delivered').length;
+  const cancelledCount = deliveries.filter(delivery => delivery.status === 'cancelled').length;
+
+  const totalRevenue = payments.reduce((sum, payment) => {
+    return payment.status === 'successful' ? sum + (payment.amount || 0) : sum;
+  }, 0);
+
+  const pendingPayments = payments.filter(payment => payment.status === 'pending').length;
+  const successfulPayments = payments.filter(payment => payment.status === 'successful').length;
+  const failedPayments = payments.filter(payment => payment.status === 'failed').length;
+
+  // Chart data
+  const statusChartData = {
+    labels: [t('deliveries.pending'), t('deliveries.inTransit'), t('deliveries.delivered'), t('deliveries.cancelled')],
     datasets: [
       {
         label: t('admin.deliveryStatus'),
-        data: Object.values(deliveryStatusData),
-        backgroundColor: [
-          'rgba(255, 99, 132, 0.6)',
-          'rgba(54, 162, 235, 0.6)',
-          'rgba(255, 206, 86, 0.6)',
-          'rgba(75, 192, 192, 0.6)',
-          'rgba(153, 102, 255, 0.6)',
-        ],
-        borderWidth: 1,
+        data: [pendingCount, inTransitCount, deliveredCount, cancelledCount],
+        backgroundColor: ['#fbbf24', '#3b82f6', '#10b981', '#ef4444'],
       },
     ],
   };
 
-  const packageTypeChartData = {
-    labels: Object.keys(packageTypeData).map(type => t(`delivery.${type?.replace('_', '')}`)),
+  const paymentChartData = {
+    labels: [t('payments.status') + ': ' + t('payments.pending'), t('payments.status') + ': ' + t('common.success'), t('payments.status') + ': ' + t('common.failed')],
     datasets: [
       {
-        label: t('admin.packageTypes'),
-        data: Object.values(packageTypeData),
-        backgroundColor: [
-          'rgba(255, 99, 132, 0.6)',
-          'rgba(54, 162, 235, 0.6)',
-          'rgba(255, 206, 86, 0.6)',
-          'rgba(75, 192, 192, 0.6)',
-          'rgba(153, 102, 255, 0.6)',
-        ],
-        borderWidth: 1,
+        label: t('payments.title'),
+        data: [pendingPayments, successfulPayments, failedPayments],
+        backgroundColor: ['#fbbf24', '#10b981', '#ef4444'],
       },
     ],
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <div className="h-12 w-12 border-4 border-t-primary border-primary/30 rounded-full animate-spin mx-auto"></div>
+          <p className="mt-2">{t('common.loading')}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4 text-[#3B2F2F]">{t('admin.dashboard')}</h1>
-      <p className="text-muted-foreground">{t('admin.subtitle')}</p>
+      <h1 className="text-2xl font-bold mb-2">{t('admin.dashboard')}</h1>
+      <p className="text-muted-foreground mb-6">{t('admin.subtitle')}</p>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-        <Card className="bg-card rounded-lg shadow p-4 border-[#C07C56] bg-[#FAF3E0]">
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold text-[#6F4E37]">{t('admin.totalDeliveries')}</CardTitle>
+      {/* Key metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <Card className="bg-[#FAF3E0] border-[#C07C56]">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-[#6F4E37] text-lg">{t('admin.totalDeliveries')}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-gray-800">{totalDeliveries}</p>
+            <p className="text-4xl font-bold text-[#C07C56]">{totalDeliveries}</p>
           </CardContent>
         </Card>
         
-        <Card className="bg-card rounded-lg shadow p-4 border-[#C07C56] bg-[#FAF3E0]">
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold text-[#6F4E37]">{t('admin.totalRevenue')}</CardTitle>
+        <Card className="bg-[#FAF3E0] border-[#C07C56]">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-[#6F4E37] text-lg">{t('admin.totalRevenue')}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-gray-800">
-              ₹{revenueData.reduce((sum, day) => sum + day.amount, 0)}
-            </p>
+            <p className="text-4xl font-bold text-[#C07C56]">₹{totalRevenue.toFixed(2)}</p>
           </CardContent>
         </Card>
         
-        <Card className="bg-card rounded-lg shadow p-4 border-[#C07C56] bg-[#FAF3E0]">
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold text-[#6F4E37]">{t('admin.feedback')}</CardTitle>
+        <Card className="bg-[#FAF3E0] border-[#C07C56]">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-[#6F4E37] text-lg">{t('admin.feedback')}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-gray-800">{feedbackCount}</p>
+            <p className="text-4xl font-bold text-[#C07C56]">{feedbackCount}</p>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-[#FAF3E0] border-[#C07C56]">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-[#6F4E37] text-lg">{t('dashboard.deliveredCount')}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-4xl font-bold text-[#C07C56]">{deliveredCount}</p>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-        <Card className="bg-card rounded-lg shadow p-4 border-[#C07C56] bg-[#FAF3E0]">
+      {/* Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <Card className="bg-[#FAF3E0] border-[#C07C56]">
           <CardHeader>
-            <CardTitle className="text-lg font-semibold text-[#6F4E37]">{t('admin.deliveryStatus')}</CardTitle>
+            <CardTitle className="text-[#6F4E37]">{t('admin.deliveryStatus')}</CardTitle>
+            <p className="text-sm text-muted-foreground">{t('admin.statusDistribution')}</p>
           </CardHeader>
-          <CardContent className="h-64">
-            <Doughnut data={deliveryStatusChartData} />
+          <CardContent>
+            <div className="h-[300px] flex justify-center">
+              <Pie data={statusChartData} options={{ maintainAspectRatio: false }} />
+            </div>
           </CardContent>
         </Card>
-
-        <Card className="bg-card rounded-lg shadow p-4 border-[#C07C56] bg-[#FAF3E0]">
+        
+        <Card className="bg-[#FAF3E0] border-[#C07C56]">
           <CardHeader>
-            <CardTitle className="text-lg font-semibold text-[#6F4E37]">{t('admin.packageTypes')}</CardTitle>
+            <CardTitle className="text-[#6F4E37]">{t('payments.title')}</CardTitle>
+            <p className="text-sm text-muted-foreground">{t('payments.status')}</p>
           </CardHeader>
-          <CardContent className="h-64">
-            <Doughnut data={packageTypeChartData} />
+          <CardContent>
+            <div className="h-[300px] flex justify-center">
+              <Pie data={paymentChartData} options={{ maintainAspectRatio: false }} />
+            </div>
           </CardContent>
         </Card>
       </div>
-
-      <Card className="bg-card rounded-lg shadow p-4 mt-4 border-[#C07C56] bg-[#FAF3E0]">
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold text-[#6F4E37]">{t('admin.weeklyRevenue')}</CardTitle>
-        </CardHeader>
-        <CardContent className="h-80">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={revenueData}
-              margin={{
-                top: 20,
-                right: 30,
-                left: 20,
-                bottom: 5,
-              }}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <RechartsTooltip formatter={(value) => [`₹${value}`, 'Revenue']} />
-              <Bar dataKey="amount" fill="#C07C56" />
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
     </div>
   );
 };

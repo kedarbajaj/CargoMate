@@ -1,161 +1,168 @@
 
 import React from 'react';
-import { formatDate, formatCurrency } from '@/lib/utils';
+import { Card, CardContent } from '@/components/ui/card';
+import html2pdf from 'html2pdf.js';
+import { Button } from '@/components/ui/button';
+import { useTranslation } from 'react-i18next';
 
-interface DeliveryInvoiceProps {
-  invoiceData: {
-    id: string;
-    created_at: string;
-    user: {
-      name: string;
-      email: string;
-      phone: string;
-    };
-    pickup_address: string;
-    drop_address: string;
-    weight_kg: number;
-    package_type: string;
-    amount: number;
+export interface InvoiceData {
+  id: string;
+  created_at: string;
+  user: {
+    name: string;
+    email: string;
+    phone: string;
   };
-  onDownload?: () => void;
+  pickup_address: string;
+  drop_address: string;
+  weight_kg: number;
+  package_type: string;
+  amount: number;
 }
 
-const getPackageTypePrice = (packageType: string, weightKg: number): number => {
-  const basePrice = 100; // Base price in rupees
-  const weightPrice = weightKg * 20; // ₹20 per kg
-  
-  let packageMultiplier = 1;
-  switch (packageType) {
-    case 'handle_with_care':
-      packageMultiplier = 1.2;
-      break;
-    case 'fragile':
-      packageMultiplier = 1.5;
-      break;
-    case 'oversized':
-      packageMultiplier = 2;
-      break;
-    default: // standard
-      packageMultiplier = 1;
-  }
-  
-  return (basePrice + weightPrice) * packageMultiplier;
-};
+interface DeliveryInvoiceProps {
+  data: InvoiceData;
+}
 
-const DeliveryInvoice: React.FC<DeliveryInvoiceProps> = ({ invoiceData, onDownload }) => {
-  const amount = invoiceData.amount || getPackageTypePrice(invoiceData.package_type, invoiceData.weight_kg);
-  const gstRate = 0.18; // 18% GST
-  const gstAmount = amount * gstRate;
-  const totalAmount = amount + gstAmount;
+const DeliveryInvoice: React.FC<DeliveryInvoiceProps> = ({ data }) => {
+  const { t } = useTranslation();
+  
+  const handleDownload = () => {
+    const element = document.getElementById('invoice-content');
+    if (!element) return;
+    
+    const opt = {
+      margin: 1,
+      filename: `invoice-${data.id}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+    };
+    
+    html2pdf().set(opt).from(element).save();
+  };
+  
+  // Calculate taxes and total
+  const taxes = data.amount * 0.18;
+  const total = data.amount + taxes;
+  
+  // Format date
+  const formattedDate = new Date(data.created_at).toLocaleDateString();
   
   return (
-    <div className="bg-white p-6 rounded-lg shadow-lg max-w-3xl mx-auto" id="invoice">
-      <div className="flex justify-between items-start">
-        <div>
-          <h1 className="text-2xl font-bold text-primary">CargoMate</h1>
-          <p className="text-sm text-gray-600">Delivery Services</p>
-        </div>
-        <div className="text-right">
-          <h2 className="text-xl font-semibold">INVOICE</h2>
-          <p className="text-sm text-gray-600">#{invoiceData.id.substring(0, 8)}</p>
-          <p className="text-sm text-gray-600">Date: {formatDate(invoiceData.created_at)}</p>
-        </div>
+    <div className="w-full">
+      <div className="flex justify-end mb-4">
+        <Button 
+          onClick={handleDownload}
+          className="bg-[#C07C56] hover:bg-[#6F4E37]"
+        >
+          {t('invoice.download')}
+        </Button>
       </div>
       
-      <div className="mt-8 grid grid-cols-2 gap-8">
-        <div>
-          <h3 className="text-sm font-semibold text-gray-600 uppercase">From</h3>
-          <p className="font-medium">CargoMate Delivery Services</p>
-          <p>123 Logistics Avenue</p>
-          <p>Mumbai, Maharashtra 400001</p>
-          <p>India</p>
-          <p>GSTIN: 27AABCC1234A1Z5</p>
-        </div>
-        <div>
-          <h3 className="text-sm font-semibold text-gray-600 uppercase">Bill To</h3>
-          <p className="font-medium">{invoiceData.user.name}</p>
-          <p>{invoiceData.user.email}</p>
-          <p>{invoiceData.user.phone}</p>
-        </div>
-      </div>
-      
-      <div className="mt-10">
-        <h3 className="text-sm font-semibold text-gray-600 uppercase mb-2">Delivery Details</h3>
-        <div className="bg-gray-50 p-4 rounded-md">
-          <div className="grid grid-cols-2 gap-4 mb-2">
-            <div>
-              <span className="text-sm font-medium text-gray-600">Pickup Address:</span>
-              <p>{invoiceData.pickup_address}</p>
+      <Card className="bg-white border-[#C07C56]">
+        <CardContent className="p-6" id="invoice-content">
+          <div className="flex flex-col space-y-6">
+            {/* Invoice Header */}
+            <div className="flex justify-between border-b border-[#C07C56] pb-4">
+              <div>
+                <h1 className="text-3xl font-bold text-[#6F4E37]">{t('invoice.invoice')}</h1>
+                <p className="text-gray-600">{t('invoice.date')}: {formattedDate}</p>
+                <p className="text-gray-600">#{data.id.slice(0, 8)}</p>
+              </div>
+              <div className="text-right">
+                <h2 className="text-xl font-semibold text-[#6F4E37]">CargoMate</h2>
+                <p>123 Delivery Lane</p>
+                <p>Mumbai, Maharashtra</p>
+                <p>India, 400001</p>
+              </div>
             </div>
+            
+            {/* Customer Info */}
+            <div className="flex justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-[#6F4E37]">{t('invoice.from')}</h3>
+                <p>CargoMate Delivery Services</p>
+                <p>support@cargomate.com</p>
+                <p>+91 98765 43210</p>
+              </div>
+              <div className="text-right">
+                <h3 className="text-lg font-semibold text-[#6F4E37]">{t('invoice.billTo')}</h3>
+                <p>{data.user.name}</p>
+                <p>{data.user.email}</p>
+                <p>{data.user.phone}</p>
+              </div>
+            </div>
+            
+            {/* Delivery Details */}
             <div>
-              <span className="text-sm font-medium text-gray-600">Delivery Address:</span>
-              <p>{invoiceData.drop_address}</p>
+              <h3 className="text-lg font-semibold text-[#6F4E37] mb-2">{t('invoice.deliveryDetails')}</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <p className="font-semibold">{t('invoice.pickupAddress')}:</p>
+                  <p>{data.pickup_address}</p>
+                </div>
+                <div>
+                  <p className="font-semibold">{t('invoice.deliveryAddress')}:</p>
+                  <p>{data.drop_address}</p>
+                </div>
+                <div>
+                  <p className="font-semibold">{t('invoice.packageType')}:</p>
+                  <p>{data.package_type}</p>
+                </div>
+                <div>
+                  <p className="font-semibold">{t('invoice.weight')}:</p>
+                  <p>{data.weight_kg} kg</p>
+                </div>
+              </div>
+            </div>
+            
+            {/* Invoice Items */}
+            <div className="border rounded-md overflow-hidden">
+              <table className="w-full">
+                <thead className="bg-[#FAF3E0]">
+                  <tr>
+                    <th className="text-left p-3">{t('invoice.description')}</th>
+                    <th className="text-right p-3">{t('invoice.total')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-t">
+                    <td className="p-3">Delivery Service - {data.package_type} ({data.weight_kg} kg)</td>
+                    <td className="text-right p-3">₹{data.amount.toFixed(2)}</td>
+                  </tr>
+                  <tr className="border-t">
+                    <td className="p-3">{t('invoice.gst')}</td>
+                    <td className="text-right p-3">₹{taxes.toFixed(2)}</td>
+                  </tr>
+                  <tr className="border-t bg-[#FAF3E0]">
+                    <td className="p-3 font-semibold">{t('invoice.total')}</td>
+                    <td className="text-right p-3 font-semibold">₹{total.toFixed(2)}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            
+            {/* Payment Info */}
+            <div>
+              <h3 className="text-lg font-semibold text-[#6F4E37] mb-2">{t('invoice.paymentInfo')}</h3>
+              <p>{t('invoice.paymentTerms')}</p>
+              <div className="grid grid-cols-2 gap-4 mt-2">
+                <p><span className="font-medium">{t('invoice.bankName')}:</span> HDFC Bank</p>
+                <p><span className="font-medium">{t('invoice.accountName')}:</span> CargoMate Services</p>
+                <p><span className="font-medium">{t('invoice.accountNumber')}:</span> XXXX XXXX XXXX 1234</p>
+                <p><span className="font-medium">{t('invoice.ifscCode')}:</span> HDFC0001234</p>
+              </div>
+            </div>
+            
+            {/* Footer */}
+            <div className="text-center border-t border-[#C07C56] pt-4">
+              <p className="font-semibold text-[#6F4E37]">{t('invoice.thankYou')}</p>
+              <p className="text-sm text-gray-600">{t('invoice.contactUs')}</p>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <span className="text-sm font-medium text-gray-600">Package Type:</span>
-              <p className="capitalize">{invoiceData.package_type.replace('_', ' ')}</p>
-            </div>
-            <div>
-              <span className="text-sm font-medium text-gray-600">Weight:</span>
-              <p>{invoiceData.weight_kg} kg</p>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <div className="mt-10">
-        <table className="w-full">
-          <thead className="border-b">
-            <tr className="text-left">
-              <th className="py-2">Description</th>
-              <th className="py-2 text-right">Amount</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td className="py-4">Delivery charges - {invoiceData.package_type.replace('_', ' ')}</td>
-              <td className="py-4 text-right">{formatCurrency(amount, 'INR')}</td>
-            </tr>
-            <tr className="border-t border-gray-200">
-              <td className="py-2">GST (18%)</td>
-              <td className="py-2 text-right">{formatCurrency(gstAmount, 'INR')}</td>
-            </tr>
-            <tr className="border-t border-b">
-              <td className="py-4 font-semibold">Total</td>
-              <td className="py-4 text-right font-semibold">{formatCurrency(totalAmount, 'INR')}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      
-      <div className="mt-12">
-        <h3 className="text-sm font-semibold text-gray-600 uppercase mb-2">Payment Information</h3>
-        <p className="text-sm">Please make payment within 15 days to the bank account below:</p>
-        <div className="bg-gray-50 p-4 rounded-md mt-2">
-          <p><span className="font-medium">Bank Name:</span> ICICI Bank</p>
-          <p><span className="font-medium">Account Name:</span> CargoMate Delivery Services</p>
-          <p><span className="font-medium">Account Number:</span> XXXXXXXXXXXX1234</p>
-          <p><span className="font-medium">IFSC Code:</span> ICIC0001234</p>
-        </div>
-      </div>
-      
-      <div className="mt-12 text-center text-sm text-gray-600">
-        <p>Thank you for choosing CargoMate Delivery Services!</p>
-        <p>For any queries, please contact us at support@cargomate.com</p>
-      </div>
-      
-      {onDownload && (
-        <div className="mt-8 text-center">
-          <button
-            onClick={onDownload}
-            className="bg-primary text-white px-6 py-2 rounded-md hover:bg-primary/90 transition-colors"
-          >
-            Download Invoice
-          </button>
-        </div>
-      )}
+        </CardContent>
+      </Card>
     </div>
   );
 };

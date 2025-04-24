@@ -32,13 +32,10 @@ const FeedbackPage: React.FC = () => {
     setIsSubmitting(true);
     
     try {
-      // Store feedback in the database
-      const { error: dbError } = await supabase.from('feedback').insert({
-        name,
-        email,
-        feedback_type: feedbackType,
-        subject,
-        message,
+      // Store feedback in the database via notifications table since we don't have a feedback table
+      const { error: dbError } = await supabase.from('notifications').insert({
+        message: `${feedbackType.toUpperCase()} - ${subject}: ${message.substring(0, 100)}${message.length > 100 ? '...' : ''}`,
+        status: 'unread',
         user_id: user?.id || null
       });
       

@@ -4,7 +4,7 @@ export interface Delivery {
   id: string;
   user_id?: string;
   vendor_id?: string;
-  status: string;
+  status: 'pending' | 'in_transit' | 'delivered' | 'cancelled';
   pickup_address?: string;
   drop_address?: string;
   weight_kg?: number;
@@ -20,7 +20,7 @@ export interface Payment {
   user_id?: string;
   amount?: number;
   payment_method?: string;
-  status?: string;
+  status?: 'pending' | 'successful' | 'failed';
   created_at?: string;
 }
 

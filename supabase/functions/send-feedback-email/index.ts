@@ -29,17 +29,17 @@ serve(async (req) => {
       });
     }
 
-    // Send notification to admin
+    // Store in notifications table
     await adminSupabase
       .from("notifications")
       .insert({
-        user_id: null, // This can be updated to target admin user specifically if needed
+        user_id: null, // This is meant for admin notification
         message: `New ${feedbackType} feedback from ${name}: ${subject}`,
         status: "unread",
       });
 
     // In a production environment, you would send an actual email here
-    // For now, we'll just log the message
+    // using a service like SendGrid, Resend, or AWS SES
     console.log(`
       New feedback received:
       From: ${name} (${email})
@@ -49,7 +49,10 @@ serve(async (req) => {
       To: ${adminEmail}
     `);
 
-    return new Response(JSON.stringify({ success: true }), {
+    return new Response(JSON.stringify({ 
+      success: true, 
+      message: "Feedback submitted successfully and notification created"
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
