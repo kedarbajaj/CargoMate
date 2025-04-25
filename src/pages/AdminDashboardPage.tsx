@@ -15,6 +15,9 @@ import {
 } from 'chart.js';
 import { supabase } from '@/integrations/supabase/client';
 import { Delivery, Payment } from '@/types/delivery';
+import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
+import { Users, Package, TruckIcon, Settings } from 'lucide-react';
 
 // Register Chart.js components
 ChartJS.register(
@@ -33,6 +36,7 @@ const AdminDashboardPage = () => {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
   const [feedbackCount, setFeedbackCount] = useState(0);
+  const [userCount, setUserCount] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -68,6 +72,19 @@ const AdminDashboardPage = () => {
         } catch (error) {
           console.error('Error fetching feedback count:', error);
           setFeedbackCount(0);
+        }
+
+        // Count users
+        try {
+          const { count, error: userError } = await supabase
+            .from('users')
+            .select('*', { count: 'exact' });
+            
+          if (userError) throw userError;
+          setUserCount(count || 0);
+        } catch (error) {
+          console.error('Error fetching user count:', error);
+          setUserCount(0);
         }
 
         setLoading(false);
@@ -131,8 +148,38 @@ const AdminDashboardPage = () => {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-2">{t('admin.dashboard')}</h1>
-      <p className="text-muted-foreground mb-6">{t('admin.subtitle')}</p>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+        <div>
+          <h1 className="text-2xl font-bold mb-2">{t('admin.dashboard')}</h1>
+          <p className="text-muted-foreground">{t('admin.subtitle')}</p>
+        </div>
+        <div className="flex flex-wrap gap-2 mt-2 md:mt-0">
+          <Button asChild variant="outline" className="flex items-center gap-2">
+            <Link to="/admin-users">
+              <Users size={16} />
+              {t('admin.manageUsers')}
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="flex items-center gap-2">
+            <Link to="/admin-deliveries">
+              <Package size={16} />
+              {t('admin.manageDeliveries')}
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="flex items-center gap-2">
+            <Link to="/admin-vendors">
+              <TruckIcon size={16} />
+              {t('admin.manageVendors')}
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="flex items-center gap-2">
+            <Link to="/admin-settings">
+              <Settings size={16} />
+              {t('admin.settings')}
+            </Link>
+          </Button>
+        </div>
+      </div>
 
       {/* Key metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -165,10 +212,10 @@ const AdminDashboardPage = () => {
         
         <Card className="bg-[#FAF3E0] border-[#C07C56]">
           <CardHeader className="pb-2">
-            <CardTitle className="text-[#6F4E37] text-lg">{t('dashboard.deliveredCount')}</CardTitle>
+            <CardTitle className="text-[#6F4E37] text-lg">{t('admin.userCount')}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-4xl font-bold text-[#C07C56]">{deliveredCount}</p>
+            <p className="text-4xl font-bold text-[#C07C56]">{userCount}</p>
           </CardContent>
         </Card>
       </div>
@@ -199,6 +246,59 @@ const AdminDashboardPage = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Recent activity */}
+      <Card className="bg-[#FAF3E0] border-[#C07C56] mb-6">
+        <CardHeader>
+          <CardTitle className="text-[#6F4E37]">{t('admin.recentDeliveries')}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-[#C07C56]/20">
+                  <th className="text-left py-3 px-4">{t('deliveries.id')}</th>
+                  <th className="text-left py-3 px-4">{t('deliveries.status')}</th>
+                  <th className="text-left py-3 px-4">{t('deliveries.pickupAddress')}</th>
+                  <th className="text-left py-3 px-4">{t('deliveries.dropAddress')}</th>
+                  <th className="text-left py-3 px-4">{t('deliveries.createdAt')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {deliveries.slice(0, 5).map((delivery) => (
+                  <tr key={delivery.id} className="border-b border-[#C07C56]/20 hover:bg-[#C07C56]/5">
+                    <td className="py-3 px-4">
+                      <Link to={`/deliveries/${delivery.id}`} className="text-blue-600 hover:underline">
+                        {delivery.id.substring(0, 8)}...
+                      </Link>
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                        ${delivery.status === 'delivered' ? 'bg-green-100 text-green-800' : ''}
+                        ${delivery.status === 'in_transit' ? 'bg-blue-100 text-blue-800' : ''}
+                        ${delivery.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : ''}
+                        ${delivery.status === 'cancelled' ? 'bg-red-100 text-red-800' : ''}
+                      `}>
+                        {delivery.status}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4">{delivery.pickup_address?.substring(0, 20)}...</td>
+                    <td className="py-3 px-4">{delivery.drop_address?.substring(0, 20)}...</td>
+                    <td className="py-3 px-4">{new Date(delivery.created_at || '').toLocaleDateString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {deliveries.length > 5 && (
+              <div className="mt-4 text-center">
+                <Button asChild variant="outline">
+                  <Link to="/admin-deliveries">{t('common.viewMore')}</Link>
+                </Button>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

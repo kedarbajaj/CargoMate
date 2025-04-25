@@ -23,6 +23,13 @@ import TrackingPage from './pages/TrackingPage';
 import PaymentsPage from './pages/PaymentsPage';
 import ProfilePage from './pages/ProfilePage';
 import FeedbackPage from './pages/FeedbackPage';
+
+// Admin Pages
+import AdminUsersPage from './pages/AdminUsersPage';
+import AdminDeliveriesPage from './pages/AdminDeliveriesPage';
+import AdminVendorsPage from './pages/AdminVendorsPage';
+import AdminSettingsPage from './pages/AdminSettingsPage';
+
 import { supabase } from './integrations/supabase/client';
 
 // App component with the router configuration
@@ -97,10 +104,43 @@ const App: React.FC = () => {
             </ProtectedRoute>
           } />
           
+          {/* Admin Routes */}
           <Route path="/admin-dashboard" element={
             <ProtectedRoute requireAdmin>
               <MainLayout>
                 <AdminDashboardPage />
+              </MainLayout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/admin-users" element={
+            <ProtectedRoute requireAdmin>
+              <MainLayout>
+                <AdminUsersPage />
+              </MainLayout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/admin-deliveries" element={
+            <ProtectedRoute requireAdmin>
+              <MainLayout>
+                <AdminDeliveriesPage />
+              </MainLayout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/admin-vendors" element={
+            <ProtectedRoute requireAdmin>
+              <MainLayout>
+                <AdminVendorsPage />
+              </MainLayout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/admin-settings" element={
+            <ProtectedRoute requireAdmin>
+              <MainLayout>
+                <AdminSettingsPage />
               </MainLayout>
             </ProtectedRoute>
           } />
