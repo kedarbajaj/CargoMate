@@ -20,7 +20,7 @@ serve(async (req) => {
     const adminSupabase = createClient(supabaseUrl, supabaseServiceKey);
     
     // Get request body
-    const { name, email, feedbackType, subject, message, adminEmail } = await req.json();
+    const { name, email, feedbackType, subject, message, rating, adminEmail } = await req.json();
 
     if (!name || !email || !feedbackType || !subject || !message || !adminEmail) {
       return new Response(JSON.stringify({ error: "Missing required fields" }), {
@@ -34,7 +34,7 @@ serve(async (req) => {
       .from("notifications")
       .insert({
         user_id: null, // This is meant for admin notification
-        message: `New ${feedbackType} feedback from ${name}: ${subject}`,
+        message: `New ${feedbackType} feedback from ${name}: ${subject} (Rating: ${rating}/5)`,
         status: "unread",
       });
 
@@ -44,6 +44,7 @@ serve(async (req) => {
       New feedback received:
       From: ${name} (${email})
       Type: ${feedbackType}
+      Rating: ${rating}/5
       Subject: ${subject}
       Message: ${message}
       To: ${adminEmail}
