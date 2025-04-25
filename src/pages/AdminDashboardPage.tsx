@@ -154,26 +154,26 @@ const AdminDashboardPage = () => {
           <p className="text-muted-foreground">{t('admin.subtitle')}</p>
         </div>
         <div className="flex flex-wrap gap-2 mt-2 md:mt-0">
-          <Button asChild variant="outline" className="flex items-center gap-2">
-            <Link to="/admin-users">
+          <Button variant="outline" className="flex items-center gap-2">
+            <Link to="/admin-users" className="flex items-center gap-2">
               <Users size={16} />
               {t('admin.manageUsers')}
             </Link>
           </Button>
-          <Button asChild variant="outline" className="flex items-center gap-2">
-            <Link to="/admin-deliveries">
+          <Button variant="outline" className="flex items-center gap-2">
+            <Link to="/admin-deliveries" className="flex items-center gap-2">
               <Package size={16} />
               {t('admin.manageDeliveries')}
             </Link>
           </Button>
-          <Button asChild variant="outline" className="flex items-center gap-2">
-            <Link to="/admin-vendors">
+          <Button variant="outline" className="flex items-center gap-2">
+            <Link to="/admin-vendors" className="flex items-center gap-2">
               <TruckIcon size={16} />
               {t('admin.manageVendors')}
             </Link>
           </Button>
-          <Button asChild variant="outline" className="flex items-center gap-2">
-            <Link to="/admin-settings">
+          <Button variant="outline" className="flex items-center gap-2">
+            <Link to="/admin-settings" className="flex items-center gap-2">
               <Settings size={16} />
               {t('admin.settings')}
             </Link>
@@ -291,7 +291,7 @@ const AdminDashboardPage = () => {
             </table>
             {deliveries.length > 5 && (
               <div className="mt-4 text-center">
-                <Button asChild variant="outline">
+                <Button variant="outline">
                   <Link to="/admin-deliveries">{t('common.viewMore')}</Link>
                 </Button>
               </div>

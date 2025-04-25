@@ -30,7 +30,14 @@ const AdminDeliveriesPage = () => {
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      setDeliveries(data || []);
+      
+      // Ensure proper typing for status
+      const typedDeliveries: Delivery[] = (data || []).map(delivery => ({
+        ...delivery,
+        status: (delivery.status as 'pending' | 'in_transit' | 'delivered' | 'cancelled') || 'pending'
+      }));
+      
+      setDeliveries(typedDeliveries);
     } catch (error) {
       console.error('Error fetching deliveries:', error);
       toast.error(t('admin.errorFetchingDeliveries'));
@@ -39,7 +46,7 @@ const AdminDeliveriesPage = () => {
     }
   };
 
-  const handleStatusChange = async (deliveryId: string, newStatus: string) => {
+  const handleStatusChange = async (deliveryId: string, newStatus: 'pending' | 'in_transit' | 'delivered' | 'cancelled') => {
     try {
       const { error } = await supabase
         .from('deliveries')
@@ -149,16 +156,15 @@ const AdminDeliveriesPage = () => {
                     <td className="py-3 px-4">{new Date(delivery.created_at || '').toLocaleDateString()}</td>
                     <td className="py-3 px-4">
                       <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="h-8 w-8 p-0"
-                          asChild
-                        >
-                          <Link to={`/deliveries/${delivery.id}`}>
+                        <Link to={`/deliveries/${delivery.id}`}>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-8 w-8 p-0"
+                          >
                             <Eye size={16} />
-                          </Link>
-                        </Button>
+                          </Button>
+                        </Link>
                         {delivery.status === 'pending' && (
                           <Button 
                             size="sm" 

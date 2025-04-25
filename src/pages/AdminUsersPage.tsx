@@ -13,7 +13,7 @@ interface User {
   name: string;
   email: string;
   phone: string;
-  role: string;
+  role: 'user' | 'admin' | 'vendor';
   created_at: string;
 }
 
@@ -36,7 +36,14 @@ const AdminUsersPage = () => {
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      setUsers(data || []);
+      
+      // Ensure proper typing for role
+      const typedUsers: User[] = (data || []).map(user => ({
+        ...user,
+        role: (user.role as 'user' | 'admin' | 'vendor') || 'user'
+      }));
+      
+      setUsers(typedUsers);
     } catch (error) {
       console.error('Error fetching users:', error);
       toast.error(t('admin.errorFetchingUsers'));
@@ -64,7 +71,7 @@ const AdminUsersPage = () => {
     }
   };
 
-  const handleRoleChange = async (userId: string, newRole: string) => {
+  const handleRoleChange = async (userId: string, newRole: 'user' | 'admin' | 'vendor') => {
     try {
       const { error } = await supabase
         .from('users')
@@ -148,11 +155,12 @@ const AdminUsersPage = () => {
                     <td className="py-3 px-4">
                       <select
                         value={user.role}
-                        onChange={(e) => handleRoleChange(user.id, e.target.value)}
+                        onChange={(e) => handleRoleChange(user.id, e.target.value as 'user' | 'admin' | 'vendor')}
                         className="px-2 py-1 border rounded bg-white"
                       >
                         <option value="user">User</option>
                         <option value="admin">Admin</option>
+                        <option value="vendor">Vendor</option>
                       </select>
                     </td>
                     <td className="py-3 px-4">{new Date(user.created_at).toLocaleDateString()}</td>
