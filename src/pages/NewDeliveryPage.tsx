@@ -94,8 +94,8 @@ const NewDeliveryPage: React.FC = () => {
             delivery_id: data[0].id,
             user_id: user.id,
             amount: amount,
-            payment_method: 'pending',
-            status: 'pending'
+            payment_method: 'COD', // Fixed: Changed from "pending" to a valid payment method
+            status: 'pending'     // This is correct as the status can be "pending"
           })
           .select();
           
