@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,13 +12,17 @@ import DeliveryInvoice from '@/components/invoice/DeliveryInvoice';
 
 const DeliveryDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const location = useLocation();
   const { user, isVendor } = useAuth();
   const { t } = useTranslation();
   const [delivery, setDelivery] = useState<Delivery | null>(null);
   const [payment, setPayment] = useState<Payment | null>(null);
   const [loading, setLoading] = useState(true);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [viewInvoice, setViewInvoice] = useState(false);
+  
+  // Check if we should show the invoice based on the URL parameters
+  const queryParams = new URLSearchParams(location.search);
+  const [viewInvoice, setViewInvoice] = useState(queryParams.get('invoice') === 'true');
 
   useEffect(() => {
     const fetchDeliveryDetails = async () => {

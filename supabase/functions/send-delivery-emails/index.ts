@@ -21,6 +21,7 @@ interface DeliveryEmailRequest {
     scheduled_date: string;
     weight_kg: number;
     status: string;
+    package_type: string;
   };
   user_id: string;
   vendor_id: string;
@@ -80,6 +81,25 @@ serve(async (req) => {
     // Format the scheduled date for display
     const scheduledDate = new Date(delivery.scheduled_date).toLocaleString();
     
+    // Calculate estimated price based on weight and package type
+    const baseRate = 100; // Base rate in INR
+    const weightFactor = delivery.weight_kg * 10; // 10 INR per kg
+    
+    // Package type multipliers
+    const packageMultiplier = {
+      'standard': 1,
+      'handle_with_care': 1.2,
+      'fragile': 1.5,
+      'oversized': 2
+    };
+    
+    let multiplier = 1;
+    if (delivery.package_type in packageMultiplier) {
+      multiplier = packageMultiplier[delivery.package_type as keyof typeof packageMultiplier];
+    }
+    
+    const estimatedPrice = Math.round(baseRate + weightFactor) * multiplier;
+    
     // In a real app, you'd send actual emails here using services like SendGrid, Mailgun, or Resend
     // For this demo, we'll simulate the email by logging it
     console.log('Sending email to user:', userData.email);
@@ -93,9 +113,12 @@ serve(async (req) => {
       Delivery: ${delivery.drop_address}
       Scheduled Date: ${scheduledDate}
       Weight: ${delivery.weight_kg} kg
+      Package Type: ${delivery.package_type}
+      Estimated Price: ₹${estimatedPrice.toFixed(2)}
       Status: ${delivery.status}
       
       You can track your delivery at any time by visiting the tracking page.
+      A payment link has been created and you can complete the payment from your account.
 
       Thank you for using CargoMate!
     `);
@@ -111,6 +134,7 @@ serve(async (req) => {
       Delivery: ${delivery.drop_address}
       Scheduled Date: ${scheduledDate}
       Weight: ${delivery.weight_kg} kg
+      Package Type: ${delivery.package_type}
       
       Please log in to your vendor dashboard to accept or reject this delivery.
 
@@ -120,7 +144,7 @@ serve(async (req) => {
     // Create notification records for user and vendor
     const userNotification = {
       user_id,
-      message: `Your delivery from ${delivery.pickup_address} to ${delivery.drop_address} has been scheduled.`,
+      message: `Your delivery from ${delivery.pickup_address} to ${delivery.drop_address} has been scheduled. Estimated price: ₹${estimatedPrice.toFixed(2)}`,
       status: 'unread'
     };
 
@@ -142,7 +166,8 @@ serve(async (req) => {
     return new Response(JSON.stringify({ 
       success: true, 
       message: 'Delivery emails sent successfully',
-      recipients: [userData.email, vendorData.email]
+      recipients: [userData.email, vendorData.email],
+      estimatedPrice
     }), {
       status: 200,
       headers: { 'Content-Type': 'application/json', ...corsHeaders },

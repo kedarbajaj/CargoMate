@@ -165,6 +165,54 @@ const FormMessage = React.forwardRef<
 })
 FormMessage.displayName = "FormMessage"
 
+// New component for form grid layout for responsive forms
+const FormGrid = React.forwardRef<
+  HTMLDivElement, 
+  React.HTMLAttributes<HTMLDivElement> & { columns?: number }
+>(({ className, columns = 2, ...props }, ref) => {
+  return (
+    <div 
+      ref={ref} 
+      className={cn(
+        "grid gap-4", 
+        columns === 1 && "grid-cols-1",
+        columns === 2 && "grid-cols-1 md:grid-cols-2",
+        columns === 3 && "grid-cols-1 md:grid-cols-2 lg:grid-cols-3",
+        columns === 4 && "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4",
+        className
+      )} 
+      {...props} 
+    />
+  )
+})
+FormGrid.displayName = "FormGrid"
+
+// Form section component with header
+const FormSection = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement> & { 
+    title?: string;
+    description?: string;
+  }
+>(({ className, title, description, children, ...props }, ref) => {
+  return (
+    <div
+      ref={ref}
+      className={cn("space-y-4", className)}
+      {...props}
+    >
+      {(title || description) && (
+        <div className="space-y-1">
+          {title && <h3 className="text-lg font-medium">{title}</h3>}
+          {description && <p className="text-sm text-muted-foreground">{description}</p>}
+        </div>
+      )}
+      {children}
+    </div>
+  )
+})
+FormSection.displayName = "FormSection"
+
 export {
   useFormField,
   Form,
@@ -174,4 +222,6 @@ export {
   FormDescription,
   FormMessage,
   FormField,
+  FormGrid,
+  FormSection,
 }

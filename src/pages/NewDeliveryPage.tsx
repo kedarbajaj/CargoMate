@@ -66,7 +66,6 @@ const NewDeliveryPage: React.FC = () => {
           weight_kg: values.weight_kg,
           user_id: user.id,
           status: 'pending',
-          // Store package_type as part of the payload
           package_type: values.package_type
         })
         .select();
@@ -74,12 +73,45 @@ const NewDeliveryPage: React.FC = () => {
       if (error) throw error;
 
       if (data?.[0]) {
+        // Calculate the delivery amount based on weight and package type
+        const baseRate = 100; // Base rate in INR
+        const weightFactor = values.weight_kg * 10; // 10 INR per kg
+        
+        // Package type multipliers
+        const packageMultiplier = {
+          'standard': 1,
+          'handle_with_care': 1.2,
+          'fragile': 1.5,
+          'oversized': 2
+        };
+        
+        const amount = Math.round(baseRate + weightFactor) * packageMultiplier[values.package_type];
+        
+        // Create payment record
+        const { data: paymentData, error: paymentError } = await supabase
+          .from('payments')
+          .insert({
+            delivery_id: data[0].id,
+            user_id: user.id,
+            amount: amount,
+            payment_method: 'pending',
+            status: 'pending'
+          })
+          .select();
+          
+        if (paymentError) throw paymentError;
+        
         toast.success('Delivery scheduled successfully!');
         
         // Send confirmation email
         await sendDeliveryConfirmation(user.id, data[0].id, values.package_type);
         
-        navigate('/deliveries');
+        // Navigate to the invoice/bill page
+        if (paymentData?.[0]) {
+          navigate(`/deliveries/${data[0].id}?invoice=true`);
+        } else {
+          navigate('/deliveries');
+        }
       }
     } catch (error: any) {
       toast.error('Failed to schedule delivery', {
