@@ -1,4 +1,3 @@
-
 // Define types for deliveries
 export interface Delivery {
   id: string;
@@ -11,6 +10,16 @@ export interface Delivery {
   package_type?: string;
   created_at?: string;
   scheduled_date?: string;
+  users?: {
+    name?: string;
+    email?: string;
+    phone?: string;
+  };
+  vendors?: {
+    company_name?: string;
+    email?: string;
+    phone?: string;
+  };
 }
 
 // Define types for payments
