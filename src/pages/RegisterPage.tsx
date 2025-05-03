@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -17,6 +18,8 @@ import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { InfoIcon } from 'lucide-react';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters' }),
@@ -46,6 +49,8 @@ const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
   const { signUp, user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [confirmationSent, setConfirmationSent] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState('');
 
   useEffect(() => {
     if (user) {
@@ -72,7 +77,7 @@ const RegisterPage: React.FC = () => {
     setIsLoading(true);
     try {
       console.log('Attempting to register with:', values.email);
-      const { error } = await signUp(
+      const { error, confirmationRequired } = await signUp(
         values.email, 
         values.password, 
         values.name, 
@@ -88,15 +93,29 @@ const RegisterPage: React.FC = () => {
         return;
       }
       
+      setRegisteredEmail(values.email);
+      
+      // Check if confirmation is required
+      if (confirmationRequired) {
+        setConfirmationSent(true);
+        toast.success('Account created successfully!', {
+          description: 'Please check your email to confirm your account.',
+        });
+        setIsLoading(false);
+        return;
+      }
+      
       const { data: userData } = await supabase.auth.getUser();
       if (userData?.user) {
         const userId = userData.user.id;
 
+        // Update user role
         await supabase
           .from('users')
           .update({ role: values.role, name: values.name, phone: values.phone, email: values.email })
           .eq('id', userId);
 
+        // Create vendor record if applicable
         if (values.role === 'vendor' && values.companyName) {
           await supabase
             .from('vendors')
@@ -108,13 +127,19 @@ const RegisterPage: React.FC = () => {
             });
         }
 
-        toast.success('Welcome to CargoMate! Registration successful.', {
-          description: 'You can now log in to your account.',
+        toast.success('Welcome to CargoMate!', {
+          description: 'Registration successful. You can now log in.',
         });
 
         setTimeout(() => {
           navigate('/login');
-        }, 1200);
+        }, 1500);
+      } else {
+        // Handle the case where registration succeeded but we couldn't get the user
+        setConfirmationSent(true);
+        toast.success('Account created successfully!', {
+          description: 'You can now log in to your account.',
+        });
       }
     } catch (err: any) {
       console.error('Unexpected error during registration:', err);
@@ -125,6 +150,40 @@ const RegisterPage: React.FC = () => {
       setIsLoading(false);
     }
   };
+
+  if (confirmationSent) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg">
+          <div>
+            <h1 className="text-center text-3xl font-extrabold text-gray-900 mb-2">CargoMate</h1>
+            <h2 className="mt-6 text-center text-2xl font-bold text-gray-900">Check your email</h2>
+          </div>
+          
+          <Alert className="bg-blue-50 border-blue-200">
+            <InfoIcon className="h-4 w-4 text-blue-600" />
+            <AlertTitle className="text-blue-800">Confirmation email sent!</AlertTitle>
+            <AlertDescription className="text-blue-700">
+              We've sent a confirmation email to <strong>{registeredEmail}</strong>. 
+              Please check your inbox and click the link to verify your account.
+            </AlertDescription>
+          </Alert>
+          
+          <div className="mt-6 space-y-4">
+            <p className="text-center text-gray-600">
+              After confirming your email, you can log in to your account.
+            </p>
+            <Button 
+              onClick={() => navigate('/login')} 
+              className="w-full"
+            >
+              Go to Login
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">

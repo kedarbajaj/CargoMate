@@ -17,6 +17,8 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { ShieldCheck } from 'lucide-react';
 
 const passwordSchema = z.object({
   password: z.string()
@@ -30,6 +32,7 @@ const passwordSchema = z.object({
 const ResetPasswordPage: React.FC = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
 
   const form = useForm<z.infer<typeof passwordSchema>>({
     resolver: zodResolver(passwordSchema),
@@ -51,6 +54,7 @@ const ResetPasswordPage: React.FC = () => {
           description: error.message,
         });
       } else {
+        setSuccess(true);
         toast.success('Password changed successfully', {
           description: 'You can now login with your new password',
         });
@@ -77,55 +81,64 @@ const ResetPasswordPage: React.FC = () => {
           <p className="text-center text-gray-600 mt-2">Enter your new password below</p>
         </div>
         
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="mt-8 space-y-6">
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>New Password</FormLabel>
-                  <FormControl>
-                    <Input type="password" placeholder="••••••••" {...field} className="border-gray-300 focus:ring-indigo-500 focus:border-indigo-500" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="confirmPassword"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Confirm Password</FormLabel>
-                  <FormControl>
-                    <Input type="password" placeholder="••••••••" {...field} className="border-gray-300 focus:ring-indigo-500 focus:border-indigo-500" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div>
-              <Button
-                type="submit"
-                className="w-full bg-indigo-600 hover:bg-indigo-700 transition-colors"
-                disabled={isLoading}
-                variant="default"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Updating Password...
-                  </>
-                ) : (
-                  'Reset Password'
+        {success ? (
+          <Alert className="bg-green-50 border-green-200">
+            <ShieldCheck className="h-4 w-4 text-green-500" />
+            <AlertDescription className="text-green-700 ml-6">
+              Password changed successfully! You will be redirected to login shortly.
+            </AlertDescription>
+          </Alert>
+        ) : (
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="mt-8 space-y-6">
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>New Password</FormLabel>
+                    <FormControl>
+                      <Input type="password" placeholder="••••••••" {...field} className="border-gray-300 focus:ring-indigo-500 focus:border-indigo-500" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
                 )}
-              </Button>
-            </div>
-          </form>
-        </Form>
+              />
+
+              <FormField
+                control={form.control}
+                name="confirmPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Confirm Password</FormLabel>
+                    <FormControl>
+                      <Input type="password" placeholder="••••••••" {...field} className="border-gray-300 focus:ring-indigo-500 focus:border-indigo-500" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div>
+                <Button
+                  type="submit"
+                  className="w-full bg-indigo-600 hover:bg-indigo-700 transition-colors"
+                  disabled={isLoading}
+                  variant="default"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Updating Password...
+                    </>
+                  ) : (
+                    'Reset Password'
+                  )}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        )}
       </div>
     </div>
   );

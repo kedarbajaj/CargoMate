@@ -50,7 +50,6 @@ const LoginPage: React.FC = () => {
   const { signIn, user, resetPassword } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
-  const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
   const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false);
   const [generalError, setGeneralError] = useState<string | null>(null);
 
@@ -91,7 +90,7 @@ const LoginPage: React.FC = () => {
             description: 'Please use a valid email format with proper domain.',
           });
         } else if (error.code === 'invalid_login_credentials') {
-          setGeneralError('Incorrect email or password.');
+          setGeneralError('Incorrect email or password. If you recently registered, check your email for the confirmation link or click "Forgot password?" to reset it.');
           toast.error('Login failed', {
             description: 'Incorrect email or password. Please try again.',
           });

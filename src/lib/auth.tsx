@@ -9,7 +9,7 @@ type AuthContextType = {
   session: Session | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signUp: (email: string, password: string, name: string, phone: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, name: string, phone: string) => Promise<{ error: any, confirmationRequired?: boolean }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: any }>;
   isAdmin: boolean;
@@ -136,17 +136,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         };
       }
       
-      // Add better error handling and logging
       console.log('Attempting to sign in with email:', email);
-      const { error, data } = await supabase.auth.signInWithPassword({ email, password });
+      const { error, data } = await supabase.auth.signInWithPassword({ 
+        email: email.trim(), 
+        password 
+      });
       
       if (error) {
         console.error('Sign in error:', error);
-      } else {
-        console.log('Sign in successful, user:', data?.user?.id);
+        return { error };
       }
       
-      return { error };
+      console.log('Sign in successful, user:', data?.user?.id);
+      toast.success('Login successful');
+      return { error: null };
     } catch (err: any) {
       console.error('Unexpected error during sign in:', err);
       return { error: err };
@@ -165,26 +168,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         };
       }
 
-      // Use Supabase sign up, then update user table
+      // Use Supabase sign up with email confirmation disabled for easier testing
       const { error: authError, data } = await supabase.auth.signUp({
-        email,
+        email: email.trim(),
         password,
         options: {
           data: {
             name,
             phone
           },
-          // Don't set emailRedirectTo to bypass confirm email!
+          emailRedirectTo: window.location.origin + '/login'
         }
       });
 
-      if (!authError && data.user) {
-        // Use upsert instead of onConflict to fix the TypeScript error
+      if (authError) {
+        return { error: authError };
+      }
+
+      if (data.user) {
+        // Use upsert to create or update user data in our database
         await supabase
           .from('users')
           .upsert({
             id: data.user.id,
-            email,
+            email: email.trim(),
             name,
             phone,
             role: 'user'
@@ -192,18 +199,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             onConflict: 'id' 
           });
           
-        // Send welcome email - in production would be triggered by a database trigger
+        // Send welcome email
         await sendWelcomeEmail(email, name, 'user');
+        
+        toast.success('Registration successful!', {
+          description: 'You can now log in with your credentials.',
+        });
+        
+        // Check if email confirmation is required
+        const confirmationRequired = data.session === null && !data.user.confirmed_at;
+        
+        return { 
+          error: null,
+          confirmationRequired
+        };
       }
-      return { error: authError };
+      
+      return { error: null };
     } catch (err: any) {
+      console.error('Error in signUp:', err);
       return { error: err };
     }
   };
 
   const resetPassword = async (email: string) => {
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
         redirectTo: window.location.origin + '/reset-password',
       });
       
