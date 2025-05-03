@@ -5,90 +5,142 @@
 
 @layer base {
   :root {
-    /* Light Mode Colors */
-    --background: 210 20% 98%; /* Very Light Blue Gray */
-    --foreground: 220 15% 20%; /* Deep Navy */
+    /* Light Mode Colors - Modern Logistics Theme */
+    --background: 210 40% 98%; /* Light Blue-Gray Background */
+    --foreground: 215 25% 27%; /* Deep Blue-Gray Text */
 
-    --card: 210 20% 98%; /* Very Light Blue Gray */
-    --card-foreground: 220 15% 20%; /* Deep Navy */
+    --card: 0 0% 100%; /* Pure White Cards */
+    --card-foreground: 215 25% 27%; /* Deep Blue-Gray Text */
 
-    --popover: 210 20% 98%; /* Very Light Blue Gray */
-    --popover-foreground: 220 15% 20%; /* Deep Navy */
+    --popover: 0 0% 100%; /* Pure White Popovers */
+    --popover-foreground: 215 25% 27%; /* Deep Blue-Gray Text */
 
-    --primary: 210 77% 45%; /* Vibrant Blue - More saturated */
-    --primary-foreground: 0 0% 100%; /* Pure White */
+    --primary: 220 70% 50%; /* Vibrant Blue Primary */
+    --primary-foreground: 0 0% 100%; /* White Text on Primary */
 
-    --secondary: 220 13% 35%; /* Deep Navy - Slightly darker */
-    --secondary-foreground: 0 0% 98%; /* Almost White */
+    --secondary: 215 16% 47%; /* Medium Blue-Gray Secondary */
+    --secondary-foreground: 0 0% 98%; /* Almost White Text on Secondary */
 
-    --muted: 210 20% 70%; /* Soft Gray Blue */
-    --muted-foreground: 220 15% 30%; /* Darker Navy */
+    --muted: 210 20% 92%; /* Light Gray-Blue Muted Areas */
+    --muted-foreground: 215 25% 40%; /* Dark Blue-Gray on Muted */
 
-    --accent: 190 95% 40%; /* Teal - Slightly deeper */
-    --accent-foreground: 0 0% 100%; /* Pure White */
+    --accent: 200 80% 45%; /* Bright Teal Accent */
+    --accent-foreground: 0 0% 100%; /* White Text on Accent */
 
-    --destructive: 350 90% 50%; /* Vibrant Red - More visible */
-    --destructive-foreground: 0 0% 100%; /* Pure White */
+    --destructive: 0 84% 60%; /* Bright Red Destructive */
+    --destructive-foreground: 0 0% 100%; /* White Text on Destructive */
 
-    --border: 210 20% 75%; /* Lighter Blue Gray */
-    --input: 210 20% 75%; /* Lighter Blue Gray */
-    --ring: 210 77% 45%; /* Vibrant Blue */
+    --border: 215 16% 85%; /* Light Border Color */
+    --input: 215 16% 85%; /* Light Input Border */
+    --ring: 220 70% 50%; /* Primary Color for Focus Rings */
 
-    --radius: 0.5rem;
+    --radius: 0.625rem; /* Slightly Larger Border Radius */
 
     /* CargoMate Custom Colors */
-    --cargomate-50: 210 77% 95%; /* Lightest Blue */
-    --cargomate-100: 210 77% 85%; /* Light Blue */
-    --cargomate-200: 210 77% 75%; /* Medium Light Blue */
-    --cargomate-300: 210 77% 65%; /* Medium Blue */
-    --cargomate-400: 210 77% 55%; /* Vibrant Blue */
-    --cargomate-500: 210 77% 45%; /* Deep Blue */
-    --cargomate-600: 210 77% 35%; /* Dark Blue */
-    --cargomate-700: 210 77% 25%; /* Darker Blue */
-    --cargomate-800: 210 77% 15%; /* Navy Blue */
-    --cargomate-900: 210 77% 10%; /* Darkest Blue */
+    --cargomate-50: 220 70% 95%;
+    --cargomate-100: 220 70% 90%;
+    --cargomate-200: 220 70% 80%;
+    --cargomate-300: 220 70% 70%;
+    --cargomate-400: 220 70% 60%;
+    --cargomate-500: 220 70% 50%;
+    --cargomate-600: 220 70% 40%;
+    --cargomate-700: 220 70% 30%;
+    --cargomate-800: 220 70% 20%;
+    --cargomate-900: 220 70% 10%;
   }
 
   .dark {
-    /* Dark Mode Colors */
-    --background: 220 15% 15%; /* Very Dark Navy */
-    --foreground: 210 20% 95%; /* Soft Blue Gray */
+    /* Dark Mode Colors - Modern Logistics Theme */
+    --background: 220 20% 12%; /* Dark Blue-Gray Background */
+    --foreground: 210 20% 98%; /* Light Text */
 
-    --card: 220 15% 15%; /* Very Dark Navy */
-    --card-foreground: 210 20% 95%; /* Soft Blue Gray */
+    --card: 220 20% 18%; /* Slightly Lighter Dark Cards */
+    --card-foreground: 210 20% 98%; /* Light Text */
 
-    --popover: 220 15% 15%; /* Very Dark Navy */
-    --popover-foreground: 210 20% 95%; /* Soft Blue Gray */
+    --popover: 220 20% 18%; /* Slightly Lighter Dark Popovers */
+    --popover-foreground: 210 20% 98%; /* Light Text */
 
-    --primary: 210 77% 55%; /* Vibrant Blue */
-    --primary-foreground: 0 0% 100%; /* Pure White */
+    --primary: 220 70% 55%; /* Slightly Lighter Blue in Dark Mode */
+    --primary-foreground: 0 0% 100%; /* White Text on Primary */
 
-    --secondary: 220 15% 25%; /* Slightly Lighter Dark Navy */
-    --secondary-foreground: 210 20% 95%; /* Soft Blue Gray */
+    --secondary: 215 16% 35%; /* Medium-Dark Blue-Gray Secondary */
+    --secondary-foreground: 210 20% 98%; /* Light Text on Secondary */
 
-    --muted: 220 10% 30%; /* Dark Slate Gray */
-    --muted-foreground: 210 20% 90%; /* Light Blue Gray */
+    --muted: 220 20% 22%; /* Darker Muted Areas */
+    --muted-foreground: 210 20% 80%; /* Light Gray Text on Muted */
 
-    --accent: 190 95% 45%; /* Bright Teal */
-    --accent-foreground: 0 0% 100%; /* Pure White */
+    --accent: 200 80% 40%; /* Slightly Darker Teal in Dark Mode */
+    --accent-foreground: 0 0% 100%; /* White Text on Accent */
 
-    --destructive: 350 90% 60%; /* Vibrant Red */
-    --destructive-foreground: 0 0% 100%; /* Pure White */
+    --destructive: 0 70% 60%; /* Slightly Muted Red in Dark Mode */
+    --destructive-foreground: 0 0% 100%; /* White Text on Destructive */
 
-    --border: 220 15% 30%; /* Darker Navy */
-    --input: 220 15% 30%; /* Darker Navy */
-    --ring: 210 77% 55%; /* Vibrant Blue */
+    --border: 220 20% 25%; /* Darker Border */
+    --input: 220 20% 25%; /* Darker Input Border */
+    --ring: 220 70% 55%; /* Primary Color for Focus Rings */
 
     /* CargoMate Custom Colors for Dark Mode */
-    --cargomate-50: 210 77% 20%; /* Darkest Blue */
-    --cargomate-100: 210 77% 25%; /* Dark Navy */
-    --cargomate-200: 210 77% 35%; /* Dark Blue */
-    --cargomate-300: 210 77% 45%; /* Deep Blue */
-    --cargomate-400: 210 77% 55%; /* Vibrant Blue */
-    --cargomate-500: 210 77% 65%; /* Medium Blue */
-    --cargomate-600: 210 77% 75%; /* Medium Light Blue */
-    --cargomate-700: 210 77% 85%; /* Light Blue */
-    --cargomate-800: 210 77% 90%; /* Lightest Blue */
-    --cargomate-900: 210 77% 95%; /* Almost White Blue */
+    --cargomate-50: 220 70% 20%;
+    --cargomate-100: 220 70% 25%;
+    --cargomate-200: 220 70% 35%;
+    --cargomate-300: 220 70% 45%;
+    --cargomate-400: 220 70% 55%;
+    --cargomate-500: 220 70% 65%;
+    --cargomate-600: 220 70% 75%;
+    --cargomate-700: 220 70% 85%;
+    --cargomate-800: 220 70% 90%;
+    --cargomate-900: 220 70% 95%;
   }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  /* Custom card styles */
+  .card-hover {
+    @apply transition-all duration-300 hover:shadow-card-hover;
+  }
+  
+  /* Dashboard stat card styles */
+  .stat-card {
+    @apply bg-white dark:bg-card rounded-xl border border-border p-4 shadow-card hover:shadow-card-hover transition-all duration-200 overflow-hidden;
+  }
+  
+  /* Gradient backgrounds */
+  .admin-gradient {
+    @apply bg-gradient-card from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/30;
+  }
+  
+  .vendor-gradient {
+    @apply bg-gradient-card from-amber-50 to-amber-100 dark:from-amber-900/30 dark:to-amber-800/30;
+  }
+  
+  .user-gradient {
+    @apply bg-gradient-card from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30;
+  }
+}
+
+.animate-enter {
+  @apply animate-fade-in;
+}
+
+/* Status badges */
+.status-badge {
+  @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold;
+}
+
+.status-pending {
+  @apply bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-200;
+}
+
+.status-in-transit {
+  @apply bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200;
+}
+
+.status-delivered {
+  @apply bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200;
+}
+
+.status-cancelled {
+  @apply bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200;
 }

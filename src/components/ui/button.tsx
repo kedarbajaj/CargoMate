@@ -19,6 +19,11 @@ const buttonVariants = cva(
         cargomate: "bg-cargomate-500 text-white hover:bg-cargomate-600",
         cargoAccept: "bg-green-500 text-white hover:bg-green-600",
         cargoReject: "bg-red-500 text-white hover:bg-red-600",
+        success: "bg-green-600 text-white hover:bg-green-700",
+        warning: "bg-yellow-500 text-white hover:bg-yellow-600",
+        info: "bg-blue-500 text-white hover:bg-blue-600",
+        admin: "bg-purple-600 text-white hover:bg-purple-700",
+        vendor: "bg-amber-500 text-white hover:bg-amber-600",
       },
       size: {
         default: "h-10 py-2 px-4",

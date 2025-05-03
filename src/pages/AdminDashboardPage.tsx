@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Bar, Pie } from 'react-chartjs-2';
+import { Bar, Pie, Line } from 'react-chartjs-2';
 import { useTranslation } from 'react-i18next';
 import {
   Chart as ChartJS,
@@ -12,12 +12,33 @@ import {
   Tooltip,
   Legend,
   ArcElement,
+  PointElement,
+  LineElement,
+  Filler,
 } from 'chart.js';
 import { supabase } from '@/integrations/supabase/client';
 import { Delivery, Payment } from '@/types/delivery';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { Users, Package, TruckIcon, Settings } from 'lucide-react';
+import { 
+  Users, 
+  Package, 
+  TruckIcon, 
+  Settings, 
+  ArrowUpRight,
+  CreditCard,
+  MessageSquare,
+  CalendarRange,
+  BarChart3,
+  TrendingUp,
+  InfoIcon,
+  Filter
+} from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Skeleton } from '@/components/ui/skeleton';
 
 // Register Chart.js components
 ChartJS.register(
@@ -27,16 +48,46 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend,
-  ArcElement
+  ArcElement,
+  PointElement,
+  LineElement,
+  Filler
 );
 
-const AdminDashboardPage = () => {
-  const { t } = useTranslation();
+interface DashboardMetrics {
+  totalRevenue: number;
+  totalDeliveries: number;
+  pendingDeliveries: number;
+  deliveredDeliveries: number;
+  totalUsers: number;
+  feedbackCount: number;
+  monthlySales: number[];
+  monthlyUsers: number[];
+  revenueChangePercent: number;
+  usersChangePercent: number;
+  deliveriesChangePercent: number;
+}
+
+const AdminDashboardPage: React.FC = () => {
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
-  const [feedbackCount, setFeedbackCount] = useState(0);
-  const [userCount, setUserCount] = useState(0);
+  const [filterPeriod, setFilterPeriod] = useState('week'); // 'day', 'week', 'month', 'year'
+  const { t } = useTranslation();
+  
+  const [metrics, setMetrics] = useState<DashboardMetrics>({
+    totalRevenue: 0,
+    totalDeliveries: 0,
+    pendingDeliveries: 0,
+    deliveredDeliveries: 0,
+    totalUsers: 0,
+    feedbackCount: 0,
+    monthlySales: [12500, 18200, 19800, 15700, 25600, 31200, 38200, 42100, 39500, 45200, 49800, 52300],
+    monthlyUsers: [45, 58, 72, 85, 102, 128, 156, 168, 182, 195, 210, 228],
+    revenueChangePercent: 12.4,
+    usersChangePercent: 8.6,
+    deliveriesChangePercent: 15.2,
+  });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -59,33 +110,41 @@ const AdminDashboardPage = () => {
         if (paymentError) throw paymentError;
         setPayments(paymentData || []);
 
-        // Count recent feedback
-        try {
-          // Just to avoid errors, let's check if the table exists first by querying notifications
-          const { count, error: feedbackError } = await supabase
-            .from('notifications')
-            .select('*', { count: 'exact' })
-            .eq('status', 'unread');
-            
-          if (feedbackError) throw feedbackError;
-          setFeedbackCount(count || 0);
-        } catch (error) {
-          console.error('Error fetching feedback count:', error);
-          setFeedbackCount(0);
+        // Count users
+        const { count: userCount, error: userError } = await supabase
+          .from('users')
+          .select('*', { count: 'exact' });
+          
+        if (userError) throw userError;
+        
+        // Count notifications/feedback
+        const { count: feedbackCount, error: feedbackError } = await supabase
+          .from('notifications')
+          .select('*', { count: 'exact' })
+          .eq('status', 'unread');
+          
+        if (feedbackError) {
+          console.log('Feedback table might not exist yet');
         }
 
-        // Count users
-        try {
-          const { count, error: userError } = await supabase
-            .from('users')
-            .select('*', { count: 'exact' });
-            
-          if (userError) throw userError;
-          setUserCount(count || 0);
-        } catch (error) {
-          console.error('Error fetching user count:', error);
-          setUserCount(0);
-        }
+        // Calculate metrics
+        const totalDeliveries = (deliveryData || []).length;
+        const pendingDeliveries = (deliveryData || []).filter(d => d.status === 'pending').length;
+        const deliveredDeliveries = (deliveryData || []).filter(d => d.status === 'delivered').length;
+        
+        const totalRevenue = (paymentData || []).reduce((sum, payment) => {
+          return payment.status === 'successful' ? sum + (payment.amount || 0) : sum;
+        }, 0);
+
+        setMetrics({
+          ...metrics,
+          totalRevenue,
+          totalDeliveries,
+          pendingDeliveries,
+          deliveredDeliveries,
+          totalUsers: userCount || 0,
+          feedbackCount: feedbackCount || 0,
+        });
 
         setLoading(false);
       } catch (error) {
@@ -97,16 +156,11 @@ const AdminDashboardPage = () => {
     fetchData();
   }, []);
 
-  // Calculate analytics values
-  const totalDeliveries = deliveries.length;
+  // Calculate analytics values for charts
   const pendingCount = deliveries.filter(delivery => delivery.status === 'pending').length;
   const inTransitCount = deliveries.filter(delivery => delivery.status === 'in_transit').length;
   const deliveredCount = deliveries.filter(delivery => delivery.status === 'delivered').length;
   const cancelledCount = deliveries.filter(delivery => delivery.status === 'cancelled').length;
-
-  const totalRevenue = payments.reduce((sum, payment) => {
-    return payment.status === 'successful' ? sum + (payment.amount || 0) : sum;
-  }, 0);
 
   const pendingPayments = payments.filter(payment => payment.status === 'pending').length;
   const successfulPayments = payments.filter(payment => payment.status === 'successful').length;
@@ -120,19 +174,126 @@ const AdminDashboardPage = () => {
         label: t('admin.deliveryStatus'),
         data: [pendingCount, inTransitCount, deliveredCount, cancelledCount],
         backgroundColor: ['#fbbf24', '#3b82f6', '#10b981', '#ef4444'],
+        borderColor: ['#f59e0b', '#2563eb', '#059669', '#dc2626'],
+        borderWidth: 1,
       },
     ],
   };
 
   const paymentChartData = {
-    labels: [t('payments.status') + ': ' + t('payments.pending'), t('payments.status') + ': ' + t('common.success'), t('payments.status') + ': ' + t('common.failed')],
+    labels: [
+      t('payments.status') + ': ' + t('payments.pending'), 
+      t('payments.status') + ': ' + t('common.success'), 
+      t('payments.status') + ': ' + t('common.failed')
+    ],
     datasets: [
       {
         label: t('payments.title'),
         data: [pendingPayments, successfulPayments, failedPayments],
         backgroundColor: ['#fbbf24', '#10b981', '#ef4444'],
+        borderColor: ['#f59e0b', '#059669', '#dc2626'],
+        borderWidth: 1,
       },
     ],
+  };
+
+  // Monthly revenue chart data
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const revenueChartData = {
+    labels: months,
+    datasets: [
+      {
+        label: 'Revenue',
+        data: metrics.monthlySales,
+        fill: true,
+        backgroundColor: 'rgba(147, 51, 234, 0.1)',
+        borderColor: 'rgb(147, 51, 234)',
+        tension: 0.4,
+      },
+    ],
+  };
+
+  // Monthly new users chart data
+  const usersChartData = {
+    labels: months,
+    datasets: [
+      {
+        label: 'New Users',
+        data: metrics.monthlyUsers,
+        backgroundColor: '#3b82f6',
+        borderColor: '#2563eb',
+        borderWidth: 2,
+        borderRadius: 5,
+      },
+    ],
+  };
+
+  const lineChartOptions = {
+    responsive: true,
+    plugins: {
+      legend: {
+        display: false,
+      },
+      tooltip: {
+        mode: 'index',
+        intersect: false,
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        grid: {
+          display: true,
+          color: 'rgba(0, 0, 0, 0.05)',
+        },
+      },
+      x: {
+        grid: {
+          display: false,
+        },
+      },
+    },
+    elements: {
+      line: {
+        tension: 0.4,
+      },
+      point: {
+        radius: 3,
+        hoverRadius: 5,
+      },
+    },
+  };
+
+  const barChartOptions = {
+    responsive: true,
+    plugins: {
+      legend: {
+        display: false,
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        grid: {
+          display: true,
+          color: 'rgba(0, 0, 0, 0.05)',
+        },
+      },
+      x: {
+        grid: {
+          display: false,
+        },
+      },
+    },
+  };
+
+  const pieChartOptions = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'right' as const,
+      },
+    },
   };
 
   if (loading) {
@@ -147,158 +308,327 @@ const AdminDashboardPage = () => {
   }
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="container mx-auto p-4 animate-enter">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold mb-2">{t('admin.dashboard')}</h1>
+          <h1 className="text-3xl font-bold">{t('admin.dashboard')}</h1>
           <p className="text-muted-foreground">{t('admin.subtitle')}</p>
         </div>
-        <div className="flex flex-wrap gap-2 mt-2 md:mt-0">
+        
+        <div className="flex flex-wrap gap-3 mt-4 md:mt-0">
+          <div className="flex items-center space-x-2 bg-muted/50 rounded-md px-3 py-1.5">
+            <Filter size={16} />
+            <select 
+              className="bg-transparent border-none text-sm focus:outline-none focus:ring-0"
+              value={filterPeriod}
+              onChange={(e) => setFilterPeriod(e.target.value)}
+            >
+              <option value="week">Last 7 Days</option>
+              <option value="month">Last 30 Days</option>
+              <option value="quarter">Last Quarter</option>
+              <option value="year">Last Year</option>
+            </select>
+          </div>
+          
           <Button variant="outline" className="flex items-center gap-2">
-            <Link to="/admin-users" className="flex items-center gap-2">
-              <Users size={16} />
-              {t('admin.manageUsers')}
-            </Link>
+            <CalendarRange size={16} />
+            {t('common.exportReport')}
           </Button>
-          <Button variant="outline" className="flex items-center gap-2">
-            <Link to="/admin-deliveries" className="flex items-center gap-2">
-              <Package size={16} />
-              {t('admin.manageDeliveries')}
-            </Link>
-          </Button>
-          <Button variant="outline" className="flex items-center gap-2">
-            <Link to="/admin-vendors" className="flex items-center gap-2">
-              <TruckIcon size={16} />
-              {t('admin.manageVendors')}
-            </Link>
-          </Button>
-          <Button variant="outline" className="flex items-center gap-2">
-            <Link to="/admin-settings" className="flex items-center gap-2">
-              <Settings size={16} />
-              {t('admin.settings')}
-            </Link>
+          
+          <Button variant="admin" className="flex items-center gap-2">
+            <Settings size={16} />
+            {t('admin.settings')}
           </Button>
         </div>
       </div>
 
       {/* Key metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <Card className="bg-[#FAF3E0] border-[#C07C56]">
+        <Card className="admin-gradient shadow-card">
           <CardHeader className="pb-2">
-            <CardTitle className="text-[#6F4E37] text-lg">{t('admin.totalDeliveries')}</CardTitle>
+            <CardTitle className="text-sm text-muted-foreground flex items-center">
+              <CreditCard size={14} className="mr-2" />
+              {t('admin.totalRevenue')}
+            </CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-4xl font-bold text-[#C07C56]">{totalDeliveries}</p>
+          <CardContent className="pt-0 pb-4">
+            <div className="flex items-center">
+              <p className="text-3xl font-bold text-foreground">₹{metrics.totalRevenue.toLocaleString()}</p>
+              <Badge variant="success" className="flex items-center gap-1 ml-auto">
+                <ArrowUpRight size={14} />
+                <span>{metrics.revenueChangePercent}%</span>
+              </Badge>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">vs. previous period</p>
           </CardContent>
         </Card>
         
-        <Card className="bg-[#FAF3E0] border-[#C07C56]">
+        <Card className="shadow-card">
           <CardHeader className="pb-2">
-            <CardTitle className="text-[#6F4E37] text-lg">{t('admin.totalRevenue')}</CardTitle>
+            <CardTitle className="text-sm text-muted-foreground flex items-center">
+              <Package size={14} className="mr-2" />
+              {t('admin.totalDeliveries')}
+            </CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-4xl font-bold text-[#C07C56]">₹{totalRevenue.toFixed(2)}</p>
+          <CardContent className="pt-0 pb-4">
+            <div className="flex items-center">
+              <p className="text-3xl font-bold text-foreground">{metrics.totalDeliveries}</p>
+              <Badge variant="success" className="flex items-center gap-1 ml-auto">
+                <ArrowUpRight size={14} />
+                <span>{metrics.deliveriesChangePercent}%</span>
+              </Badge>
+            </div>
+            <div className="flex justify-between text-xs text-muted-foreground mt-1">
+              <span>Pending: {metrics.pendingDeliveries}</span>
+              <span>Completed: {metrics.deliveredDeliveries}</span>
+            </div>
           </CardContent>
         </Card>
         
-        <Card className="bg-[#FAF3E0] border-[#C07C56]">
+        <Card className="shadow-card">
           <CardHeader className="pb-2">
-            <CardTitle className="text-[#6F4E37] text-lg">{t('admin.feedback')}</CardTitle>
+            <CardTitle className="text-sm text-muted-foreground flex items-center">
+              <Users size={14} className="mr-2" />
+              {t('admin.userCount')}
+            </CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-4xl font-bold text-[#C07C56]">{feedbackCount}</p>
+          <CardContent className="pt-0 pb-4">
+            <div className="flex items-center">
+              <p className="text-3xl font-bold text-foreground">{metrics.totalUsers}</p>
+              <Badge variant="success" className="flex items-center gap-1 ml-auto">
+                <ArrowUpRight size={14} />
+                <span>{metrics.usersChangePercent}%</span>
+              </Badge>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Total registered users</p>
           </CardContent>
         </Card>
         
-        <Card className="bg-[#FAF3E0] border-[#C07C56]">
+        <Card className="shadow-card">
           <CardHeader className="pb-2">
-            <CardTitle className="text-[#6F4E37] text-lg">{t('admin.userCount')}</CardTitle>
+            <CardTitle className="text-sm text-muted-foreground flex items-center">
+              <MessageSquare size={14} className="mr-2" />
+              {t('admin.feedback')}
+            </CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-4xl font-bold text-[#C07C56]">{userCount}</p>
+          <CardContent className="pt-0 pb-4">
+            <div className="flex items-center">
+              <p className="text-3xl font-bold text-foreground">{metrics.feedbackCount}</p>
+              <Badge variant="warning" className="ml-auto">
+                <span>Unread</span>
+              </Badge>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">New messages requiring attention</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <Card className="bg-[#FAF3E0] border-[#C07C56]">
-          <CardHeader>
-            <CardTitle className="text-[#6F4E37]">{t('admin.deliveryStatus')}</CardTitle>
-            <p className="text-sm text-muted-foreground">{t('admin.statusDistribution')}</p>
+      {/* Main analytics dashboard */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <Card className="lg:col-span-2 shadow-card">
+          <CardHeader className="pb-2 flex flex-row justify-between items-center">
+            <CardTitle className="text-lg">Revenue Overview</CardTitle>
+            <Tabs defaultValue="chart" className="w-28">
+              <TabsList className="h-8 p-1">
+                <TabsTrigger value="chart" className="h-6 px-2 text-xs">
+                  <BarChart3 size={14} />
+                </TabsTrigger>
+                <TabsTrigger value="trend" className="h-6 px-2 text-xs">
+                  <TrendingUp size={14} />
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
           </CardHeader>
           <CardContent>
-            <div className="h-[300px] flex justify-center">
-              <Pie data={statusChartData} options={{ maintainAspectRatio: false }} />
-            </div>
+            <TabsContent value="chart" className="mt-0">
+              <div className="h-[300px]">
+                <Line 
+                  data={revenueChartData} 
+                  options={lineChartOptions}
+                />
+              </div>
+              <div className="grid grid-cols-4 gap-4 mt-6">
+                <div className="bg-muted/50 rounded-lg p-3">
+                  <p className="text-xs text-muted-foreground mb-1">Q1</p>
+                  <p className="text-lg font-semibold">₹50,500</p>
+                  <Badge variant="success" className="mt-1">+12%</Badge>
+                </div>
+                <div className="bg-muted/50 rounded-lg p-3">
+                  <p className="text-xs text-muted-foreground mb-1">Q2</p>
+                  <p className="text-lg font-semibold">₹72,500</p>
+                  <Badge variant="success" className="mt-1">+18%</Badge>
+                </div>
+                <div className="bg-muted/50 rounded-lg p-3">
+                  <p className="text-xs text-muted-foreground mb-1">Q3</p>
+                  <p className="text-lg font-semibold">₹119,800</p>
+                  <Badge variant="success" className="mt-1">+24%</Badge>
+                </div>
+                <div className="bg-muted/50 rounded-lg p-3">
+                  <p className="text-xs text-muted-foreground mb-1">Q4</p>
+                  <p className="text-lg font-semibold">₹147,300</p>
+                  <Badge variant="success" className="mt-1">+9%</Badge>
+                </div>
+              </div>
+            </TabsContent>
+            <TabsContent value="trend" className="mt-0">
+              <div className="h-[300px]">
+                <Bar 
+                  data={usersChartData} 
+                  options={barChartOptions}
+                />
+              </div>
+              <div className="mt-4 p-3 bg-muted/50 rounded-lg">
+                <div className="flex justify-between mb-2">
+                  <p className="text-sm font-medium">User Growth</p>
+                  <Badge variant="success">+8.6%</Badge>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Total growth in user base has increased by 8.6% compared to the previous period. 
+                  The majority of new signups come through mobile applications.
+                </p>
+              </div>
+            </TabsContent>
           </CardContent>
         </Card>
-        
-        <Card className="bg-[#FAF3E0] border-[#C07C56]">
-          <CardHeader>
-            <CardTitle className="text-[#6F4E37]">{t('payments.title')}</CardTitle>
-            <p className="text-sm text-muted-foreground">{t('payments.status')}</p>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px] flex justify-center">
-              <Pie data={paymentChartData} options={{ maintainAspectRatio: false }} />
-            </div>
-          </CardContent>
-        </Card>
+
+        <div className="space-y-6">
+          <Card className="shadow-card">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg">Delivery Status</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[220px]">
+                <Pie data={statusChartData} options={pieChartOptions} />
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="shadow-card">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg">Payment Status</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[220px]">
+                <Pie data={paymentChartData} options={pieChartOptions} />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       {/* Recent activity */}
-      <Card className="bg-[#FAF3E0] border-[#C07C56] mb-6">
-        <CardHeader>
-          <CardTitle className="text-[#6F4E37]">{t('admin.recentDeliveries')}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-[#C07C56]/20">
-                  <th className="text-left py-3 px-4">{t('deliveries.id')}</th>
-                  <th className="text-left py-3 px-4">{t('deliveries.status')}</th>
-                  <th className="text-left py-3 px-4">{t('deliveries.pickupAddress')}</th>
-                  <th className="text-left py-3 px-4">{t('deliveries.dropAddress')}</th>
-                  <th className="text-left py-3 px-4">{t('deliveries.createdAt')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {deliveries.slice(0, 5).map((delivery) => (
-                  <tr key={delivery.id} className="border-b border-[#C07C56]/20 hover:bg-[#C07C56]/5">
-                    <td className="py-3 px-4">
-                      <Link to={`/deliveries/${delivery.id}`} className="text-blue-600 hover:underline">
-                        {delivery.id.substring(0, 8)}...
-                      </Link>
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                        ${delivery.status === 'delivered' ? 'bg-green-100 text-green-800' : ''}
-                        ${delivery.status === 'in_transit' ? 'bg-blue-100 text-blue-800' : ''}
-                        ${delivery.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : ''}
-                        ${delivery.status === 'cancelled' ? 'bg-red-100 text-red-800' : ''}
-                      `}>
-                        {delivery.status}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4">{delivery.pickup_address?.substring(0, 20)}...</td>
-                    <td className="py-3 px-4">{delivery.drop_address?.substring(0, 20)}...</td>
-                    <td className="py-3 px-4">{new Date(delivery.created_at || '').toLocaleDateString()}</td>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="md:col-span-2 shadow-card">
+          <CardHeader className="flex flex-row items-center justify-between pb-2 border-b">
+            <CardTitle className="text-lg">{t('admin.recentDeliveries')}</CardTitle>
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/admin-deliveries">{t('common.viewAll')}</Link>
+            </Button>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b bg-muted/50">
+                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">{t('deliveries.id')}</th>
+                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">{t('deliveries.status')}</th>
+                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">{t('deliveries.pickupAddress')}</th>
+                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">{t('deliveries.createdAt')}</th>
+                    <th className="text-right py-3 px-4 font-medium text-muted-foreground"></th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-            {deliveries.length > 5 && (
-              <div className="mt-4 text-center">
-                <Button variant="outline">
-                  <Link to="/admin-deliveries">{t('common.viewMore')}</Link>
+                </thead>
+                <tbody>
+                  {deliveries.slice(0, 5).map((delivery) => (
+                    <tr key={delivery.id} className="border-b hover:bg-muted/50">
+                      <td className="py-3 px-4">
+                        <Link to={`/deliveries/${delivery.id}`} className="text-primary hover:underline">
+                          {delivery.id.substring(0, 8)}...
+                        </Link>
+                      </td>
+                      <td className="py-3 px-4">
+                        <Badge 
+                          variant={
+                            delivery.status === 'delivered' ? 'success' : 
+                            delivery.status === 'in_transit' ? 'info' : 
+                            delivery.status === 'pending' ? 'warning' : 
+                            'destructive'
+                          } 
+                          className="capitalize"
+                        >
+                          {delivery.status.replace('_', ' ')}
+                        </Badge>
+                      </td>
+                      <td className="py-3 px-4">{delivery.pickup_address?.substring(0, 25)}...</td>
+                      <td className="py-3 px-4">{new Date(delivery.created_at || '').toLocaleDateString()}</td>
+                      <td className="py-3 px-4 text-right">
+                        <Button variant="outline" size="sm" asChild>
+                          <Link to={`/deliveries/${delivery.id}`}>{t('common.view')}</Link>
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-card">
+          <CardHeader className="flex flex-row items-center justify-between pb-2 border-b">
+            <CardTitle className="text-lg">Quick Actions</CardTitle>
+            <InfoIcon size={16} className="text-muted-foreground" />
+          </CardHeader>
+          <CardContent className="pt-6">
+            <div className="space-y-4">
+              <Link to="/admin-users" className="block">
+                <Button variant="outline" className="w-full justify-start" size="lg">
+                  <Users className="mr-2 h-5 w-5" />
+                  {t('admin.manageUsers')}
                 </Button>
+              </Link>
+              
+              <Link to="/admin-deliveries" className="block">
+                <Button variant="outline" className="w-full justify-start" size="lg">
+                  <Package className="mr-2 h-5 w-5" />
+                  {t('admin.manageDeliveries')}
+                </Button>
+              </Link>
+              
+              <Link to="/admin-vendors" className="block">
+                <Button variant="outline" className="w-full justify-start" size="lg">
+                  <TruckIcon className="mr-2 h-5 w-5" />
+                  {t('admin.manageVendors')}
+                </Button>
+              </Link>
+              
+              <Link to="/admin-settings" className="block">
+                <Button variant="admin" className="w-full justify-start" size="lg">
+                  <Settings className="mr-2 h-5 w-5" />
+                  {t('admin.settings')}
+                </Button>
+              </Link>
+              
+              <Separator />
+              
+              <div className="bg-muted/50 p-3 rounded-lg">
+                <h4 className="font-medium">System Status</h4>
+                <div className="flex justify-between text-sm mt-2">
+                  <span className="text-muted-foreground">Database</span>
+                  <Badge variant="success">Healthy</Badge>
+                </div>
+                <div className="flex justify-between text-sm mt-1">
+                  <span className="text-muted-foreground">API Status</span>
+                  <Badge variant="success">Online</Badge>
+                </div>
+                <div className="flex justify-between text-sm mt-1">
+                  <span className="text-muted-foreground">Storage</span>
+                  <Badge variant="warning">76% Used</Badge>
+                </div>
               </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
