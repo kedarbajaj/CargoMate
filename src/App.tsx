@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next';
 // Auth Pages
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 
 // Main Pages
 import LandingPage from './pages/LandingPage';
@@ -62,6 +63,7 @@ const App: React.FC = () => {
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
           
           {/* Protected Routes with Layout */}
           <Route path="/dashboard" element={
@@ -210,10 +212,10 @@ const ProtectedRoute = ({ children, requireAdmin = false, requireVendor = false 
   // Show loading state
   if (loading || !authChecked) {
     return (
-      <div className="flex h-screen items-center justify-center">
+      <div className="flex h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
         <div className="text-center">
-          <div className="h-12 w-12 mx-auto border-4 border-t-primary border-muted rounded-full animate-spin"></div>
-          <p className="mt-4">{t('common.loading')}</p>
+          <div className="h-12 w-12 mx-auto border-4 border-t-indigo-600 border-indigo-200 rounded-full animate-spin"></div>
+          <p className="mt-4 text-indigo-800">{t('common.loading')}</p>
         </div>
       </div>
     );

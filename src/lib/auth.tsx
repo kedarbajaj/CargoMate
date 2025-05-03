@@ -11,6 +11,7 @@ type AuthContextType = {
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signUp: (email: string, password: string, name: string, phone: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
+  resetPassword: (email: string) => Promise<{ error: any }>;
   isAdmin: boolean;
   isVendor: boolean;
   userProfile: { name: string; email: string; phone: string; role: string } | null;
@@ -134,9 +135,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         };
       }
+      
+      // Add better error handling and logging
+      console.log('Attempting to sign in with email:', email);
       const { error, data } = await supabase.auth.signInWithPassword({ email, password });
+      
+      if (error) {
+        console.error('Sign in error:', error);
+      } else {
+        console.log('Sign in successful, user:', data?.user?.id);
+      }
+      
       return { error };
     } catch (err: any) {
+      console.error('Unexpected error during sign in:', err);
       return { error: err };
     }
   };
@@ -189,6 +201,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const resetPassword = async (email: string) => {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + '/reset-password',
+      });
+      
+      return { error };
+    } catch (err: any) {
+      console.error('Error in resetPassword:', err);
+      return { error: err };
+    }
+  };
+
   const sendWelcomeEmail = async (email: string, name: string, role: string) => {
     // In a real app, this would call a serverless function to send an email
     console.log(`Welcome email would be sent to ${email} for ${name} with role ${role}`);
@@ -216,6 +241,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signIn,
     signUp,
     signOut,
+    resetPassword,
     isAdmin,
     isVendor,
     userProfile
