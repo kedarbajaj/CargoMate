@@ -18,7 +18,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { sendDeliveryConfirmation } from '@/lib/email';
+import { sendDeliveryConfirmation, notifyVendorNewDelivery, notifyAdminNewDelivery } from '@/lib/email';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Loader2, Info } from 'lucide-react';
 
 const formSchema = z.object({
   pickup_address: z.string().min(5, { message: 'Pickup address is required' }),
@@ -58,6 +60,7 @@ const NewDeliveryPage: React.FC = () => {
     setIsSubmitting(true);
 
     try {
+      // Step 1: Create the delivery record
       const { data, error } = await supabase
         .from('deliveries')
         .insert({
@@ -87,15 +90,15 @@ const NewDeliveryPage: React.FC = () => {
         
         const amount = Math.round(baseRate + weightFactor) * packageMultiplier[values.package_type];
         
-        // Create payment record
+        // Step 2: Create payment record
         const { data: paymentData, error: paymentError } = await supabase
           .from('payments')
           .insert({
             delivery_id: data[0].id,
             user_id: user.id,
             amount: amount,
-            payment_method: 'COD', // Fixed: Changed from "pending" to a valid payment method
-            status: 'pending'     // This is correct as the status can be "pending"
+            payment_method: 'COD',
+            status: 'pending'
           })
           .select();
           
@@ -103,8 +106,28 @@ const NewDeliveryPage: React.FC = () => {
         
         toast.success('Delivery scheduled successfully!');
         
-        // Send confirmation email
+        // Step 3: Send notifications to all parties
         await sendDeliveryConfirmation(user.id, data[0].id, values.package_type);
+        
+        // Find a vendor to assign (for demo purposes, we'll just get the first vendor)
+        const { data: vendors } = await supabase
+          .from('vendors')
+          .select('id')
+          .limit(1);
+          
+        if (vendors && vendors.length > 0) {
+          // Assign the vendor to the delivery
+          await supabase
+            .from('deliveries')
+            .update({ vendor_id: vendors[0].id })
+            .eq('id', data[0].id);
+            
+          // Notify the vendor
+          await notifyVendorNewDelivery(vendors[0].id, data[0].id);
+        }
+        
+        // Notify admin
+        await notifyAdminNewDelivery(data[0].id);
         
         // Navigate to the invoice/bill page
         if (paymentData?.[0]) {
@@ -128,6 +151,15 @@ const NewDeliveryPage: React.FC = () => {
         <h1 className="text-2xl font-bold">Schedule a New Delivery</h1>
         <p className="text-muted-foreground">Fill in the details below to schedule your delivery</p>
       </div>
+      
+      <Alert variant="info" className="bg-blue-50 border-blue-200">
+        <Info size={16} />
+        <AlertTitle>Important Information</AlertTitle>
+        <AlertDescription>
+          When you schedule a delivery, notifications will be sent to you, the assigned vendor, and our admin team.
+        </AlertDescription>
+      </Alert>
+      
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <FormField
@@ -207,7 +239,12 @@ const NewDeliveryPage: React.FC = () => {
             variant="default"
             disabled={isSubmitting}
           >
-            {isSubmitting ? 'Scheduling...' : 'Schedule Delivery'}
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Scheduling...
+              </>
+            ) : 'Schedule Delivery'}
           </Button>
         </form>
       </Form>

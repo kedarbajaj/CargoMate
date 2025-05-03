@@ -3,9 +3,13 @@ import { supabase } from "@/integrations/supabase/client";
 
 export async function sendWelcomeEmail(email: string, name: string, role: string) {
   try {
-    // In a production app, you would call a Supabase Edge Function here
-    // For now, we'll just log the action
-    console.log(`Sending welcome email to ${email}`);
+    // Call our Supabase function to send welcome email
+    const { data, error } = await supabase.functions.invoke('send-welcome-email', {
+      body: { email, name, role }
+    });
+    
+    if (error) throw error;
+    console.log(`Welcome email sent to ${email} (${role})`);
     return true;
   } catch (error) {
     console.error('Error sending welcome email:', error);
@@ -15,12 +19,60 @@ export async function sendWelcomeEmail(email: string, name: string, role: string
 
 export async function sendDeliveryConfirmation(userId: string, deliveryId: string, packageType: string) {
   try {
-    // In a production app, this would call a Supabase Edge Function to send the email
-    // For now, we'll just log the action
-    console.log(`Sending delivery confirmation for delivery ${deliveryId} to user ${userId}`);
+    // Call our Supabase function to send delivery confirmation email
+    const { data, error } = await supabase.functions.invoke('send-delivery-emails', {
+      body: { 
+        userId, 
+        deliveryId, 
+        packageType,
+        type: 'customer_confirmation' 
+      }
+    });
+    
+    if (error) throw error;
+    console.log(`Delivery confirmation sent for delivery ${deliveryId}`);
     return true;
   } catch (error) {
     console.error('Error sending delivery confirmation:', error);
+    return false;
+  }
+}
+
+export async function notifyVendorNewDelivery(vendorId: string, deliveryId: string) {
+  try {
+    // Call our Supabase function to notify vendor about new delivery
+    const { data, error } = await supabase.functions.invoke('send-delivery-emails', {
+      body: { 
+        vendorId, 
+        deliveryId,
+        type: 'vendor_new_delivery' 
+      }
+    });
+    
+    if (error) throw error;
+    console.log(`Vendor notification sent for delivery ${deliveryId}`);
+    return true;
+  } catch (error) {
+    console.error('Error notifying vendor:', error);
+    return false;
+  }
+}
+
+export async function notifyAdminNewDelivery(deliveryId: string) {
+  try {
+    // Call our Supabase function to notify admin about new delivery
+    const { data, error } = await supabase.functions.invoke('send-delivery-emails', {
+      body: { 
+        deliveryId,
+        type: 'admin_new_delivery' 
+      }
+    });
+    
+    if (error) throw error;
+    console.log(`Admin notification sent for delivery ${deliveryId}`);
+    return true;
+  } catch (error) {
+    console.error('Error notifying admin:', error);
     return false;
   }
 }

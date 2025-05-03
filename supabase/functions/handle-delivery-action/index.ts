@@ -113,7 +113,7 @@ serve(async (req) => {
     }
 
     // Update the delivery status based on action
-    const newStatus = action === 'accept' ? 'accepted' : 'rejected';
+    const newStatus = action === 'accept' ? 'in_transit' : 'cancelled';
     const { error: updateError } = await supabase
       .from('deliveries')
       .update({ status: newStatus })
@@ -123,18 +123,51 @@ serve(async (req) => {
       throw updateError;
     }
 
-    // Create notification for the user
-    const notification = {
+    // Create notification for the customer
+    const customerNotification = {
       user_id: delivery.user_id,
-      message: `Your delivery from ${delivery.pickup_address} to ${delivery.drop_address} has been ${newStatus} by ${vendor.company_name}.`,
+      message: `Your delivery from ${delivery.pickup_address} to ${delivery.drop_address} has been ${action === 'accept' ? 'accepted' : 'rejected'} by ${vendor.company_name}.`,
       status: 'unread',
     };
 
-    await supabase.from('notifications').insert(notification);
+    await supabase.from('notifications').insert(customerNotification);
+
+    // Find admins to notify about the vendor action
+    const { data: admins } = await supabase
+      .from('users')
+      .select('id')
+      .eq('role', 'admin');
+
+    if (admins && admins.length > 0) {
+      // Create notifications for all admins
+      const adminNotifications = admins.map(admin => ({
+        user_id: admin.id,
+        message: `Vendor ${vendor.company_name} has ${action === 'accept' ? 'accepted' : 'rejected'} delivery ${deliveryId.substring(0, 8)}.`,
+        status: 'unread',
+      }));
+
+      await supabase.from('notifications').insert(adminNotifications);
+    }
 
     // In a real app, send an email to the user
     console.log(`Sending email to user ${delivery.users?.email} about delivery ${action}`);
     console.log(`Email content: Your delivery from ${delivery.pickup_address} to ${delivery.drop_address} has been ${newStatus} by ${vendor.company_name}.`);
+
+    try {
+      // Call the email sending function if it exists
+      await supabase.functions.invoke('send-delivery-emails', {
+        body: {
+          userId: delivery.user_id,
+          deliveryId: deliveryId,
+          vendorName: vendor.company_name,
+          action: action,
+          type: 'vendor_action'
+        }
+      });
+    } catch (emailError) {
+      console.error('Error sending email:', emailError);
+      // We don't want to fail the whole operation if just the email fails
+    }
 
     return new Response(JSON.stringify({ 
       success: true,
