@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Bar, Pie, Line } from 'react-chartjs-2';
@@ -228,6 +227,7 @@ const AdminDashboardPage: React.FC = () => {
     ],
   };
 
+  // Chart options with fixed type for tooltip mode
   const lineChartOptions = {
     responsive: true,
     plugins: {
@@ -235,7 +235,7 @@ const AdminDashboardPage: React.FC = () => {
         display: false,
       },
       tooltip: {
-        mode: 'index',
+        mode: 'index' as const, // Fix for the type error by adding 'as const'
         intersect: false,
       },
     },
