@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
 import { capitalizeFirstLetter } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 interface UserData {
   name: string;
@@ -21,6 +22,7 @@ interface UserData {
 }
 
 const UserAccountDropdown: React.FC = () => {
+  const { t } = useTranslation();
   const { user, signOut } = useAuth();
   const [userData, setUserData] = useState<UserData | null>(null);
   
@@ -70,20 +72,20 @@ const UserAccountDropdown: React.FC = () => {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link to="/profile" className="cursor-pointer">Profile</Link>
+          <Link to="/profile" className="cursor-pointer">{t('profile.title')}</Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link to="/deliveries" className="cursor-pointer">My Deliveries</Link>
+          <Link to="/deliveries" className="cursor-pointer">{t('deliveries.myDeliveries')}</Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link to="/payments" className="cursor-pointer">Payment History</Link>
+          <Link to="/payments" className="cursor-pointer">{t('payments.history')}</Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem 
           className="cursor-pointer text-red-600 focus:text-red-600" 
           onClick={() => signOut()}
         >
-          Log out
+          {t('auth.logout')}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

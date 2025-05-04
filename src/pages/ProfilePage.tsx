@@ -112,20 +112,24 @@ const ProfilePage: React.FC = () => {
             .eq('id', user.id)
             .single();
 
-          if (error) throw error;
+          if (error) {
+            console.error("Error fetching user data:", error);
+            toast.error(t('profile.errorFetchingProfile'));
+            return;
+          }
 
           // Set form values
           profileForm.reset({
-            name: data.name || '',
-            email: data.email || '',
-            phone: data.phone || '',
-            role: data.role || '',
-            currentAddress: data.current_address || '',
-            pincode: data.pincode || '',
+            name: data?.name || '',
+            email: data?.email || '',
+            phone: data?.phone || '',
+            role: data?.role || '',
+            currentAddress: data?.current_address || '',
+            pincode: data?.pincode || '',
           });
           
           // Check if user is a vendor
-          if (data.role === 'vendor') {
+          if (data?.role === 'vendor') {
             const { data: vendorInfo, error } = await supabase
               .from('vendors')
               .select('company_name')

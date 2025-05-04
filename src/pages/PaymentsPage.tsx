@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import PaymentComponent from '@/components/PaymentComponent';
 import { Payment } from '@/types/delivery';
+import { formatCurrency } from '@/lib/formatUtils';
 
 const PaymentsPage: React.FC = () => {
   const { t } = useTranslation();
@@ -98,7 +99,7 @@ const PaymentsPage: React.FC = () => {
             <CardTitle className="text-[#6F4E37]">{t('payments.totalPaid')}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-[#C07C56]">₹{totalPaid.toFixed(2)}</p>
+            <p className="text-3xl font-bold text-[#C07C56]">{formatCurrency(totalPaid)}</p>
           </CardContent>
         </Card>
         
@@ -107,7 +108,7 @@ const PaymentsPage: React.FC = () => {
             <CardTitle className="text-[#6F4E37]">{t('payments.pendingPayments')}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-[#C07C56]">₹{pendingAmount.toFixed(2)}</p>
+            <p className="text-3xl font-bold text-[#C07C56]">{formatCurrency(pendingAmount)}</p>
           </CardContent>
         </Card>
         
@@ -143,8 +144,8 @@ const PaymentsPage: React.FC = () => {
                   {payments.map((payment) => (
                     <tr key={payment.id} className="border-t border-[#C07C56]/30">
                       <td className="px-4 py-2">{payment.id.slice(0,8)}</td>
-                      <td className="px-4 py-2">{new Date(payment.created_at || '').toLocaleDateString()}</td>
-                      <td className="px-4 py-2">₹{payment.amount?.toFixed(2)}</td>
+                      <td className="px-4 py-2">{payment.created_at ? new Date(payment.created_at).toLocaleDateString() : '-'}</td>
+                      <td className="px-4 py-2">{formatCurrency(payment.amount || 0)}</td>
                       <td className="px-4 py-2">{payment.payment_method}</td>
                       <td className="px-4 py-2">
                         <span className={`px-2 py-1 rounded text-white text-xs ${

@@ -130,6 +130,7 @@ export type Database = {
           id: string
           message: string | null
           status: Database["public"]["Enums"]["notification_status"] | null
+          type: Database["public"]["Enums"]["notification_type"] | null
           user_id: string | null
         }
         Insert: {
@@ -137,6 +138,7 @@ export type Database = {
           id?: string
           message?: string | null
           status?: Database["public"]["Enums"]["notification_status"] | null
+          type?: Database["public"]["Enums"]["notification_type"] | null
           user_id?: string | null
         }
         Update: {
@@ -144,6 +146,7 @@ export type Database = {
           id?: string
           message?: string | null
           status?: Database["public"]["Enums"]["notification_status"] | null
+          type?: Database["public"]["Enums"]["notification_type"] | null
           user_id?: string | null
         }
         Relationships: [
@@ -245,29 +248,35 @@ export type Database = {
       users: {
         Row: {
           created_at: string | null
+          current_address: string | null
           email: string | null
           id: string
           name: string | null
           password_hash: string | null
           phone: string | null
+          pincode: string | null
           role: Database["public"]["Enums"]["role"] | null
         }
         Insert: {
           created_at?: string | null
+          current_address?: string | null
           email?: string | null
           id?: string
           name?: string | null
           password_hash?: string | null
           phone?: string | null
+          pincode?: string | null
           role?: Database["public"]["Enums"]["role"] | null
         }
         Update: {
           created_at?: string | null
+          current_address?: string | null
           email?: string | null
           id?: string
           name?: string | null
           password_hash?: string | null
           phone?: string | null
+          pincode?: string | null
           role?: Database["public"]["Enums"]["role"] | null
         }
         Relationships: []
@@ -310,6 +319,13 @@ export type Database = {
       delivery_status: "pending" | "in_transit" | "delivered" | "cancelled"
       delivery_update_status: "Dispatched" | "In Transit" | "Delivered"
       notification_status: "unread" | "read"
+      notification_type:
+        | "delivery_created"
+        | "delivery_in_transit"
+        | "delivery_completed"
+        | "delivery_cancelled"
+        | "payment_received"
+        | "system"
       payment_method: "UPI" | "CreditCard" | "COD" | "NetBanking"
       payment_status: "pending" | "successful" | "failed"
       role: "user" | "vendor" | "admin"
@@ -432,6 +448,14 @@ export const Constants = {
       delivery_status: ["pending", "in_transit", "delivered", "cancelled"],
       delivery_update_status: ["Dispatched", "In Transit", "Delivered"],
       notification_status: ["unread", "read"],
+      notification_type: [
+        "delivery_created",
+        "delivery_in_transit",
+        "delivery_completed",
+        "delivery_cancelled",
+        "payment_received",
+        "system",
+      ],
       payment_method: ["UPI", "CreditCard", "COD", "NetBanking"],
       payment_status: ["pending", "successful", "failed"],
       role: ["user", "vendor", "admin"],

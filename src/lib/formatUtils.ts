@@ -41,3 +41,18 @@ export const formatRelativeDate = (dateString: string): string => {
     return dateString;
   }
 };
+
+/**
+ * Format a date
+ * @param dateString Date string to format
+ * @param formatStr Optional format string
+ */
+export const formatDate = (dateString: string, formatStr: string = 'PPP'): string => {
+  try {
+    const date = typeof dateString === 'string' ? parseISO(dateString) : new Date(dateString);
+    return format(date, formatStr);
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return new Date(dateString).toLocaleDateString();
+  }
+};

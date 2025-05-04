@@ -3,7 +3,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import html2pdf from 'html2pdf.js';
-import { formatDate, formatCurrency } from '@/lib/utils';
+import { formatCurrency } from '@/lib/formatUtils';
 import { Download } from 'lucide-react';
 
 interface DeliveryDetails {
@@ -54,7 +54,7 @@ const DeliveryInvoiceEnhanced: React.FC<DeliveryInvoiceProps> = ({
   companyDetails,
 }) => {
   const { t } = useTranslation();
-  const invoiceDate = formatDate(delivery.created_at);
+  const invoiceDate = new Date(delivery.created_at).toLocaleDateString();
   const invoiceNumber = `INV-${delivery.id.slice(0, 8).toUpperCase()}`;
   
   const subtotal = payment.amount / 1.18; // Removing GST for calculation
@@ -185,8 +185,8 @@ const DeliveryInvoiceEnhanced: React.FC<DeliveryInvoiceProps> = ({
         </div>
       </div>
       
-      {/* Hidden styles for PDF generation */}
-      <style jsx>{`
+      <style>
+        {`
         @media print {
           body {
             -webkit-print-color-adjust: exact;
@@ -198,7 +198,8 @@ const DeliveryInvoiceEnhanced: React.FC<DeliveryInvoiceProps> = ({
           color: black !important;
           padding: 20px;
         }
-      `}</style>
+        `}
+      </style>
     </div>
   );
 };
