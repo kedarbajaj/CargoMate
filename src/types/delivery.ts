@@ -1,3 +1,4 @@
+
 // Define types for deliveries
 export interface Delivery {
   id: string;
@@ -40,6 +41,8 @@ export interface UserProfile {
   email?: string;
   phone?: string;
   role?: string;
+  current_address?: string;
+  pincode?: string;
 }
 
 // Define type for invoice data

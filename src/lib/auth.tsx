@@ -4,6 +4,7 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { sendWelcomeEmail } from '@/lib/email';
+import { UserProfile } from '@/types/delivery';
 
 type AuthContextType = {
   user: User | null;
@@ -15,7 +16,7 @@ type AuthContextType = {
   resetPassword: (email: string) => Promise<{ error: any }>;
   isAdmin: boolean;
   isVendor: boolean;
-  userProfile: { name: string; email: string; phone: string; role: string } | null;
+  userProfile: UserProfile | null;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -26,7 +27,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isVendor, setIsVendor] = useState(false);
-  const [userProfile, setUserProfile] = useState<{ name: string; email: string; phone: string; role: string } | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
 
   useEffect(() => {
     console.log('Setting up auth state listener');
@@ -78,7 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Fetch user profile data
       const { data: userData, error: userError } = await supabase
         .from('users')
-        .select('name, email, phone, role')
+        .select('name, email, phone, role, current_address, pincode')
         .eq('id', userId)
         .maybeSingle();
       
@@ -89,7 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       // Set the user profile
       if (userData) {
-        setUserProfile(userData);
+        setUserProfile(userData as UserProfile);
         
         // Check if admin
         if (userData?.role === 'admin') {

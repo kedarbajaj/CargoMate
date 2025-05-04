@@ -14,21 +14,22 @@ import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
 import { capitalizeFirstLetter } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
-
-interface UserData {
-  name: string;
-  email: string;
-  role: string;
-}
+import { UserProfile } from '@/types/delivery';
 
 const UserAccountDropdown: React.FC = () => {
   const { t } = useTranslation();
-  const { user, signOut } = useAuth();
-  const [userData, setUserData] = useState<UserData | null>(null);
+  const { user, signOut, userProfile } = useAuth();
+  const [userData, setUserData] = useState<UserProfile | null>(null);
   
   useEffect(() => {
     const fetchUserData = async () => {
       if (!user) return;
+      
+      // If we already have user profile data from auth context, use it
+      if (userProfile) {
+        setUserData(userProfile);
+        return;
+      }
       
       try {
         const { data, error } = await supabase
@@ -38,14 +39,14 @@ const UserAccountDropdown: React.FC = () => {
           .single();
         
         if (error) throw error;
-        setUserData(data);
+        setUserData(data as UserProfile);
       } catch (error) {
         console.error('Error fetching user data:', error);
       }
     };
     
     fetchUserData();
-  }, [user]);
+  }, [user, userProfile]);
   
   if (!user) return null;
   
