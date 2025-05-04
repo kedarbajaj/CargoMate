@@ -11,7 +11,12 @@
     "delete": "કાઢી નાખો",
     "back": "પાછળ",
     "next": "આગળ",
-    "submit": "સબમિટ કરો"
+    "submit": "સબમિટ કરો",
+    "view": "જુઓ",
+    "processing": "પ્રોસેસ થઈ રહ્યું છે...",
+    "submitting": "સબમિટ થઈ રહ્યું છે...",
+    "importantInfo": "મહત્વપૂર્ણ માહિતી",
+    "tryAgain": "કૃપા કરીને ફરીથી પ્રયાસ કરો"
   },
   "auth": {
     "login": "લોગિન",
@@ -29,7 +34,10 @@
     "loginAs": "આ રીતે લૉગિન કરો",
     "user": "વપરાશકર્તા",
     "vendor": "વેન્ડર",
-    "admin": "એડમિન"
+    "admin": "એડમિન",
+    "loginRequired": "તમારે લૉગિન કરવું આવશ્યક છે",
+    "currentAddress": "વર્તમાન સરનામું",
+    "pincode": "પિન કોડ"
   },
   "navigation": {
     "dashboard": "ડેશબોર્ડ",
@@ -65,9 +73,12 @@
   "delivery": {
     "details": "ડિલિવરી વિગતો",
     "pickupAddress": "પિકઅપ સરનામું",
+    "pickupAddressPlaceholder": "123 મુખ્ય માર્ગ, શહેર, રાજ્ય, પિન",
     "deliveryAddress": "ડિલિવરી સરનામું",
+    "deliveryAddressPlaceholder": "456 ઓક સ્ટ્રીટ, શહેર, રાજ્ય, પિન",
     "weight": "વજન (કિલો)",
     "packageType": "પેકેજ પ્રકાર",
+    "selectPackageType": "પેકેજ પ્રકાર પસંદ કરો",
     "status": "સ્થિતિ",
     "createdAt": "બનાવ્યાનો સમય",
     "scheduledDate": "શેડ્યૂલ તારીખ",
@@ -84,7 +95,11 @@
     "scheduleDelivery": "નવી ડિલિવરી શેડ્યૂલ કરો",
     "fillDetails": "તમારી ડિલિવરી શેડ્યૂલ કરવા માટે નીચેની વિગતો ભરો",
     "scheduling": "શેડ્યૂલિંગ...",
-    "schedule": "ડિલિવરી શેડ્યૂલ કરો"
+    "schedule": "ડિલિવરી શેડ્યૂલ કરો",
+    "successMessage": "ડિલિવરી સફળતાપૂર્વક શેડ્યૂલ કરી!",
+    "loginDescription": "ડિલિવરી શેડ્યૂલ કરવા માટે તમારે લોગિન કરવું પડશે",
+    "notificationInfo": "જ્યારે તમે ડિલિવરી શેડ્યૂલ કરો છો, ત્યારે તમને, નિયુક્ત વિક્રેતાને અને અમારી એડમિન ટીમને સૂચનાઓ મોકલવામાં આવશે.",
+    "deliveryCharge": "ડિલિવરી ચાર્જ"
   },
   "payments": {
     "title": "ચુકવણીઓ",
@@ -106,7 +121,18 @@
     "upi": "યુપીઆઈ",
     "wallet": "ડિજિટલ વૉલેટ",
     "completePayment": "ચુકવણી પૂર્ણ કરો",
-    "noPayments": "કોઈ ચુકવણીનો ઇતિહાસ ઉપલબ્ધ નથી"
+    "noPayments": "કોઈ ચુકવણીનો ઇતિહાસ ઉપલબ્ધ નથી",
+    "cardNumber": "કાર્ડ નંબર",
+    "cardName": "કાર્ડ પર નામ",
+    "cardExpiry": "સમાપ્તિ તારીખ",
+    "cardCVC": "સીવીસી",
+    "upiId": "યુપીઆઈ આઈડી",
+    "taxes": "કર અને ફી (18%)",
+    "total": "કુલ",
+    "fillCardDetails": "કૃપા કરીને તમામ કાર્ડ વિગતો ભરો",
+    "fillUpiDetails": "કૃપા કરીને તમારું યુપીઆઈ આઈડી દાખલ કરો",
+    "paymentSuccess": "ચુકવણી સફળતાપૂર્વક પ્રોસેસ થઈ",
+    "paymentFailed": "ચુકવણી નિષ્ફળ. કૃપા કરીને ફરી પ્રયાસ કરો."
   },
   "invoice": {
     "invoice": "ઇનવૉઇસ",
@@ -126,7 +152,7 @@
     "bankName": "બેંકનું નામ",
     "accountName": "ખાતાનું નામ",
     "accountNumber": "ખાતા નંબર",
-    "ifscCode": "આઈએફએસસી ક�ડ",
+    "ifscCode": "આઈએફએસસી કોડ",
     "thankYou": "કાર્ગોમેટ ડિલિવરી સેવાઓ પસંદ કરવા બદલ આભાર!",
     "contactUs": "કોઈ પ્રશ્નો માટે, કૃપા કરીને support@cargomate.com પર અમારો સંપર્ક કરો",
     "download": "ઇનવૉઇસ ડાઉનલોડ કરો"
@@ -138,7 +164,12 @@
     "deliveryStatus": "ડિલિવરી સ્થિતિ",
     "statusDistribution": "ડિલિવરી સ્થિતિનું વિતરણ",
     "packageTypes": "પેકેજ પ્રકારો",
-    "packageDistribution": "પેકેજ પ્રકારોનું વિતરણ"
+    "packageDistribution": "પેકેજ પ્રકારોનું વિતરણ",
+    "analytics": "એનાલિટિક્સ",
+    "users": "વપરાશકર્તાઓ",
+    "weeklyRevenue": "સાપ્તાહિક આવક",
+    "totalRevenue": "કુલ આવક",
+    "feedback": "પ્રતિસાદ મળ્યો"
   },
   "vendor": {
     "dashboard": "વેન્ડર ડેશબોર્ડ",
@@ -147,9 +178,42 @@
     "manageDeliveries": "તમને સોંપાયેલ ડિલિવરી મેનેજ કરો",
     "noAssignedDeliveries": "હજુ સુધી કોઈ ડિલિવરી સોંપાઈ નથી",
     "deliveriesWillAppear": "તમને સોંપાયેલ ડિલિવરી અહીં દેખાશે",
-    "viewAllDeliveries": "બધી ડિલિવરી જુઓ"
+    "viewAllDeliveries": "બધી ડિલિવરી જુઓ",
+    "deliveries": "સોંપાયેલી ડિલિવરી"
   },
   "language": {
     "selectLanguage": "ભાષા પસંદ કરો"
+  },
+  "notifications": {
+    "title": "સૂચનાઓ",
+    "markAllRead": "બધા વાંચેલા તરીકે ચિહ્નિત કરો",
+    "noNotifications": "કોઈ સૂચનાઓ નથી"
+  },
+  "profile": {
+    "settings": "પ્રોફાઇલ સેટિંગ્સ",
+    "updateInfo": "તમારી વ્યક્તિગત માહિતી અને પાસવર્ડ અપડેટ કરો",
+    "personalInfo": "વ્યક્તિગત માહિતી",
+    "changePassword": "પાસવર્ડ બદલો",
+    "fullName": "પૂરું નામ",
+    "emailAddress": "ઇમેઇલ એડ્રેસ",
+    "phoneNumber": "ફોન નંબર",
+    "accountType": "ખાતાનો પ્રકાર",
+    "companyName": "કંપનીનું નામ",
+    "currentPassword": "વર્તમાન પાસવર્ડ",
+    "newPassword": "નવો પાસવર્ડ",
+    "confirmPassword": "નવો પાસવર્ડ પુષ્ટિ કરો",
+    "updating": "અપડેટ થઈ રહ્યું છે...",
+    "updateProfile": "પ્રોફાઇલ અપડેટ કરો",
+    "changingPassword": "પાસવર્ડ બદલાઈ રહ્યો છે...",
+    "changePassword": "પાસવર્ડ બદલો",
+    "currentAddress": "વર્તમાન સરનામું",
+    "pincode": "પિન કોડ",
+    "profileUpdated": "પ્રોફાઇલ અપડેટ થઈ",
+    "updateFailed": "અપડેટ નિષ્ફળ",
+    "incorrectCurrentPassword": "વર્તમાન પાસવર્ડ ખોટો છે",
+    "passwordChanged": "પાસવર્ડ બદલાયો",
+    "emailUpdateInitiated": "ઇમેઇલ અપડેટ શરૂ થયું",
+    "checkNewEmail": "પુષ્ટિકરણ લિંક માટે તમારો નવો ઇમેઇલ તપાસો",
+    "errorFetchingProfile": "પ્રોફાઇલ માહિતી મેળવવામાં ભૂલ"
   }
 }

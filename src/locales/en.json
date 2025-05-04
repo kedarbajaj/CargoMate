@@ -14,7 +14,9 @@
     "submit": "Submit",
     "view": "View",
     "processing": "Processing...",
-    "submitting": "Submitting..."
+    "submitting": "Submitting...",
+    "importantInfo": "Important Information",
+    "tryAgain": "Please try again later"
   },
   "auth": {
     "login": "Login",
@@ -32,7 +34,10 @@
     "loginAs": "Login as",
     "user": "User",
     "vendor": "Vendor",
-    "admin": "Admin"
+    "admin": "Admin",
+    "loginRequired": "You must be logged in",
+    "currentAddress": "Current Address",
+    "pincode": "PIN Code"
   },
   "navigation": {
     "dashboard": "Dashboard",
@@ -68,9 +73,12 @@
   "delivery": {
     "details": "Delivery Details",
     "pickupAddress": "Pickup Address",
+    "pickupAddressPlaceholder": "123 Main St, City, State, PIN",
     "deliveryAddress": "Delivery Address",
+    "deliveryAddressPlaceholder": "456 Oak St, City, State, PIN",
     "weight": "Weight (kg)",
     "packageType": "Package Type",
+    "selectPackageType": "Select package type",
     "status": "Status",
     "createdAt": "Created At",
     "scheduledDate": "Scheduled Date",
@@ -87,7 +95,10 @@
     "scheduleDelivery": "Schedule a New Delivery",
     "fillDetails": "Fill in the details below to schedule your delivery",
     "scheduling": "Scheduling...",
-    "schedule": "Schedule Delivery"
+    "schedule": "Schedule Delivery",
+    "successMessage": "Delivery scheduled successfully!",
+    "loginDescription": "You need to log in to schedule a delivery",
+    "notificationInfo": "When you schedule a delivery, notifications will be sent to you, the assigned vendor, and our admin team."
   },
   "payments": {
     "title": "Payments",
@@ -190,5 +201,25 @@
     "submit": "Submit Feedback",
     "thankYou": "Thank you for your feedback!",
     "fillAllFields": "Please fill in all fields"
+  },
+  "profile": {
+    "settings": "Profile Settings",
+    "updateInfo": "Update your personal information and password",
+    "personalInfo": "Personal Information",
+    "changePassword": "Change Password",
+    "fullName": "Full Name",
+    "emailAddress": "Email Address",
+    "phoneNumber": "Phone Number",
+    "accountType": "Account Type",
+    "companyName": "Company Name",
+    "currentPassword": "Current Password",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm New Password",
+    "updating": "Updating...",
+    "updateProfile": "Update Profile",
+    "changingPassword": "Changing Password...",
+    "changePassword": "Change Password",
+    "currentAddress": "Current Address",
+    "pincode": "PIN Code"
   }
 }

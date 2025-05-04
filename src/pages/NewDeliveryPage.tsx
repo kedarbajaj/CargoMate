@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -19,7 +20,8 @@ import { toast } from 'sonner';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { sendDeliveryConfirmation, notifyVendorNewDelivery, notifyAdminNewDelivery } from '@/lib/email';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Loader2, Info } from 'lucide-react';
+import { Loader2, Info, MapPin, Package, Truck } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const formSchema = z.object({
   pickup_address: z.string().min(5, { message: 'Pickup address is required' }),
@@ -36,6 +38,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 const NewDeliveryPage: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -52,7 +55,9 @@ const NewDeliveryPage: React.FC = () => {
 
   const onSubmit = async (values: FormValues) => {
     if (!user) {
-      toast.error('You must be logged in to schedule a delivery');
+      toast.error(t('auth.loginRequired'), {
+        description: t('delivery.loginDescription')
+      });
       return;
     }
 
@@ -103,10 +108,9 @@ const NewDeliveryPage: React.FC = () => {
           
         if (paymentError) throw paymentError;
         
-        toast.success('Delivery scheduled successfully!');
+        toast.success(t('delivery.successMessage'));
         
         // Step 3: Send notifications to all parties
-        // Fix the function call by matching the expected parameters in src/lib/email.ts
         await sendDeliveryConfirmation(user.id, data[0].id, values.package_type);
         
         // Find a vendor to assign (for demo purposes, we'll just get the first vendor)
@@ -122,11 +126,10 @@ const NewDeliveryPage: React.FC = () => {
             .update({ vendor_id: vendors[0].id })
             .eq('id', data[0].id);
             
-          // Fix the function call by providing the correct arguments
           await notifyVendorNewDelivery(vendors[0].id, data[0].id, values.pickup_address, values.drop_address);
         }
         
-        // Notify admin - fix the function call by providing all required arguments
+        // Notify admin
         await notifyAdminNewDelivery(data[0].id, user.id, vendors?.[0]?.id || '');
         
         // Navigate to the invoice/bill page
@@ -137,8 +140,8 @@ const NewDeliveryPage: React.FC = () => {
         }
       }
     } catch (error: any) {
-      toast.error('Failed to schedule delivery', {
-        description: error.message || 'Please try again later',
+      toast.error(t('common.error'), {
+        description: error.message || t('common.tryAgain'),
       });
     } finally {
       setIsSubmitting(false);
@@ -146,17 +149,17 @@ const NewDeliveryPage: React.FC = () => {
   };
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Schedule a New Delivery</h1>
-        <p className="text-muted-foreground">Fill in the details below to schedule your delivery</p>
+    <div className="mx-auto max-w-2xl space-y-6 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg animate-fade-in">
+      <div className="text-center">
+        <h1 className="text-2xl font-bold text-cargomate-600 dark:text-cargomate-400">{t('delivery.scheduleDelivery')}</h1>
+        <p className="text-muted-foreground">{t('delivery.fillDetails')}</p>
       </div>
       
-      <Alert variant="info" className="bg-blue-50 border-blue-200">
-        <Info size={16} />
-        <AlertTitle>Important Information</AlertTitle>
-        <AlertDescription>
-          When you schedule a delivery, notifications will be sent to you, the assigned vendor, and our admin team.
+      <Alert className="bg-blue-50 border-blue-200 dark:bg-blue-900/30 dark:border-blue-800">
+        <Info className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+        <AlertTitle className="text-blue-800 dark:text-blue-300">{t('common.importantInfo')}</AlertTitle>
+        <AlertDescription className="text-blue-700 dark:text-blue-300">
+          {t('delivery.notificationInfo')}
         </AlertDescription>
       </Alert>
       
@@ -166,10 +169,17 @@ const NewDeliveryPage: React.FC = () => {
             control={form.control}
             name="pickup_address"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel>Pickup Address</FormLabel>
+              <FormItem className="bg-gray-50 dark:bg-gray-700/30 p-4 rounded-md border border-gray-100 dark:border-gray-700">
+                <FormLabel className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-cargomate-500" />
+                  {t('delivery.pickupAddress')}
+                </FormLabel>
                 <FormControl>
-                  <Input placeholder="123 Main St, City, State, ZIP" {...field} />
+                  <Input 
+                    placeholder={t('delivery.pickupAddressPlaceholder')} 
+                    {...field} 
+                    className="bg-white dark:bg-gray-800"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -179,10 +189,17 @@ const NewDeliveryPage: React.FC = () => {
             control={form.control}
             name="drop_address"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel>Delivery Address</FormLabel>
+              <FormItem className="bg-gray-50 dark:bg-gray-700/30 p-4 rounded-md border border-gray-100 dark:border-gray-700">
+                <FormLabel className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-cargomate-500" />
+                  {t('delivery.deliveryAddress')}
+                </FormLabel>
                 <FormControl>
-                  <Input placeholder="456 Oak St, City, State, ZIP" {...field} />
+                  <Input 
+                    placeholder={t('delivery.deliveryAddressPlaceholder')} 
+                    {...field} 
+                    className="bg-white dark:bg-gray-800"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -192,8 +209,11 @@ const NewDeliveryPage: React.FC = () => {
             control={form.control}
             name="weight_kg"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel>Package Weight (kg)</FormLabel>
+              <FormItem className="bg-gray-50 dark:bg-gray-700/30 p-4 rounded-md border border-gray-100 dark:border-gray-700">
+                <FormLabel className="flex items-center gap-2">
+                  <Package className="h-4 w-4 text-cargomate-500" />
+                  {t('delivery.weight')}
+                </FormLabel>
                 <FormControl>
                   <Input
                     type="number"
@@ -201,6 +221,7 @@ const NewDeliveryPage: React.FC = () => {
                     placeholder="10.5"
                     {...field}
                     value={field.value?.toString() || ''}
+                    className="bg-white dark:bg-gray-800"
                   />
                 </FormControl>
                 <FormMessage />
@@ -211,22 +232,25 @@ const NewDeliveryPage: React.FC = () => {
             control={form.control}
             name="package_type"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel>Package Type</FormLabel>
+              <FormItem className="bg-gray-50 dark:bg-gray-700/30 p-4 rounded-md border border-gray-100 dark:border-gray-700">
+                <FormLabel className="flex items-center gap-2">
+                  <Truck className="h-4 w-4 text-cargomate-500" />
+                  {t('delivery.packageType')}
+                </FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
                 >
                   <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select package type" />
+                    <SelectTrigger className="bg-white dark:bg-gray-800">
+                      <SelectValue placeholder={t('delivery.selectPackageType')} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="standard">Standard</SelectItem>
-                    <SelectItem value="handle_with_care">Handle with Care</SelectItem>
-                    <SelectItem value="fragile">Fragile</SelectItem>
-                    <SelectItem value="oversized">Oversized</SelectItem>
+                    <SelectItem value="standard">{t('delivery.standard')}</SelectItem>
+                    <SelectItem value="handle_with_care">{t('delivery.handleWithCare')}</SelectItem>
+                    <SelectItem value="fragile">{t('delivery.fragile')}</SelectItem>
+                    <SelectItem value="oversized">{t('delivery.oversized')}</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -235,16 +259,15 @@ const NewDeliveryPage: React.FC = () => {
           />
           <Button
             type="submit"
-            className="w-full"
-            variant="default"
+            className="w-full bg-gradient-to-r from-cargomate-500 to-cargomate-600 hover:from-cargomate-600 hover:to-cargomate-700 text-white transition-all"
             disabled={isSubmitting}
           >
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Scheduling...
+                {t('delivery.scheduling')}
               </>
-            ) : 'Schedule Delivery'}
+            ) : t('delivery.schedule')}
           </Button>
         </form>
       </Form>

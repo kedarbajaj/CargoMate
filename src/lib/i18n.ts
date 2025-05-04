@@ -42,11 +42,13 @@ i18n
     detection: {
       order: ['localStorage', 'navigator'],
       caches: ['localStorage']
+    },
+    react: {
+      useSuspense: true,
     }
   });
 
-export default i18n;
-
+// Export language configurations
 export const availableLanguages = [
   { code: 'en', name: 'English' },
   { code: 'hi', name: 'हिन्दी (Hindi)' },
@@ -55,3 +57,11 @@ export const availableLanguages = [
   { code: 'mr', name: 'मराठी (Marathi)' },
   { code: 'gu', name: 'ગુજરાતી (Gujarati)' }
 ];
+
+// Helper to get language name
+export const getLanguageName = (code: string): string => {
+  const language = availableLanguages.find(lang => lang.code === code);
+  return language ? language.name : 'English';
+};
+
+export default i18n;

@@ -11,7 +11,12 @@
     "delete": "हटाएं",
     "back": "वापस",
     "next": "अगला",
-    "submit": "जमा करें"
+    "submit": "जमा करें",
+    "view": "देखें",
+    "processing": "प्रोसेसिंग...",
+    "submitting": "जमा हो रहा है...",
+    "importantInfo": "महत्वपूर्ण जानकारी",
+    "tryAgain": "कृपया बाद में पुनः प्रयास करें"
   },
   "auth": {
     "login": "लॉगिन",
@@ -29,7 +34,10 @@
     "loginAs": "इस रूप में लॉगिन करें",
     "user": "उपयोगकर्ता",
     "vendor": "विक्रेता",
-    "admin": "व्यवस्थापक"
+    "admin": "व्यवस्थापक",
+    "loginRequired": "आपको लॉगिन करना होगा",
+    "currentAddress": "वर्तमान पता",
+    "pincode": "पिन कोड"
   },
   "navigation": {
     "dashboard": "डैशबोर्ड",
@@ -65,9 +73,12 @@
   "delivery": {
     "details": "डिलीवरी विवरण",
     "pickupAddress": "पिकअप पता",
+    "pickupAddressPlaceholder": "123 मुख्य मार्ग, शहर, राज्य, पिन",
     "deliveryAddress": "डिलीवरी पता",
+    "deliveryAddressPlaceholder": "456 ओक स्ट्रीट, शहर, राज्य, पिन",
     "weight": "वजन (किग्रा)",
     "packageType": "पैकेज प्रकार",
+    "selectPackageType": "पैकेज प्रकार चुनें",
     "status": "स्थिति",
     "createdAt": "बनाया गया",
     "scheduledDate": "निर्धारित तिथि",
@@ -84,7 +95,11 @@
     "scheduleDelivery": "एक नई डिलीवरी शेड्यूल करें",
     "fillDetails": "अपनी डिलीवरी शेड्यूल करने के लिए नीचे दिए गए विवरण भरें",
     "scheduling": "शेड्यूल कर रहा है...",
-    "schedule": "डिलीवरी शेड्यूल करें"
+    "schedule": "डिलीवरी शेड्यूल करें",
+    "successMessage": "डिलीवरी सफलतापूर्वक शेड्यूल की गई!",
+    "loginDescription": "डिलीवरी शेड्यूल करने के लिए आपको लॉगिन करना होगा",
+    "notificationInfo": "जब आप डिलीवरी शेड्यूल करते हैं, तो आपको, असाइन किए गए विक्रेता और हमारी व्यवस्थापक टीम को सूचनाएँ भेजी जाएंगी।",
+    "deliveryCharge": "डिलीवरी शुल्क"
   },
   "payments": {
     "title": "भुगतान",
@@ -106,7 +121,18 @@
     "upi": "यूपीआई",
     "wallet": "डिजिटल वॉलेट",
     "completePayment": "भुगतान पूरा करें",
-    "noPayments": "कोई भुगतान इतिहास उपलब्ध नहीं है"
+    "noPayments": "कोई भुगतान इतिहास उपलब्ध नहीं है",
+    "cardNumber": "कार्ड नंबर",
+    "cardName": "कार्ड पर नाम",
+    "cardExpiry": "समाप्ति तिथि",
+    "cardCVC": "सीवीसी",
+    "upiId": "यूपीआई आईडी",
+    "taxes": "कर और शुल्क (18%)",
+    "total": "कुल",
+    "fillCardDetails": "कृपया सभी कार्ड विवरण भरें",
+    "fillUpiDetails": "कृपया अपना यूपीआई आईडी दर्ज करें",
+    "paymentSuccess": "भुगतान सफलतापूर्वक प्रोसेस किया गया",
+    "paymentFailed": "भुगतान विफल। कृपया पुनः प्रयास करें।"
   },
   "invoice": {
     "invoice": "चालान",
@@ -138,7 +164,12 @@
     "deliveryStatus": "डिलीवरी स्थिति",
     "statusDistribution": "डिलीवरी स्थिति का वितरण",
     "packageTypes": "पैकेज प्रकार",
-    "packageDistribution": "पैकेज प्रकार का वितरण"
+    "packageDistribution": "पैकेज प्रकार का वितरण",
+    "analytics": "विश्लेषिकी",
+    "users": "उपयोगकर्ता",
+    "weeklyRevenue": "साप्ताहिक राजस्व",
+    "totalRevenue": "कुल राजस्व",
+    "feedback": "प्राप्त प्रतिक्रिया"
   },
   "vendor": {
     "dashboard": "विक्रेता डैशबोर्ड",
@@ -147,9 +178,61 @@
     "manageDeliveries": "अपनी असाइन की गई डिलीवरी का प्रबंधन करें",
     "noAssignedDeliveries": "अभी तक कोई डिलीवरी असाइन नहीं की गई है",
     "deliveriesWillAppear": "आपको असाइन की गई डिलीवरी यहां दिखाई देगी",
-    "viewAllDeliveries": "सभी डिलीवरी देखें"
+    "viewAllDeliveries": "सभी डिलीवरी देखें",
+    "deliveries": "असाइन की गई डिलीवरी"
   },
   "language": {
     "selectLanguage": "भाषा चुनें"
+  },
+  "feedback": {
+    "title": "प्रतिक्रिया",
+    "subtitle": "हम अपनी सेवाओं को बेहतर बनाने के लिए आपकी प्रतिक्रिया को महत्व देते हैं",
+    "formTitle": "अपनी प्रतिक्रिया साझा करें",
+    "name": "नाम",
+    "email": "ईमेल",
+    "type": "प्रतिक्रिया प्रकार",
+    "selectType": "प्रतिक्रिया का प्रकार चुनें",
+    "typeGeneral": "सामान्य",
+    "typeBug": "बग रिपोर्ट",
+    "typeFeature": "फीचर अनुरोध",
+    "typeComplaint": "शिकायत",
+    "typePraise": "प्रशंसा",
+    "subject": "विषय",
+    "message": "आपका संदेश",
+    "submit": "प्रतिक्रिया जमा करें",
+    "thankYou": "आपकी प्रतिक्रिया के लिए धन्यवाद!",
+    "fillAllFields": "कृपया सभी फ़ील्ड भरें"
+  },
+  "notifications": {
+    "title": "सूचनाएँ",
+    "markAllRead": "सभी पढ़ा हुआ मार्क करें",
+    "noNotifications": "कोई सूचना नहीं है"
+  },
+  "profile": {
+    "settings": "प्रोफाइल सेटिंग्स",
+    "updateInfo": "अपनी व्यक्तिगत जानकारी और पासवर्ड अपडेट करें",
+    "personalInfo": "व्यक्तिगत जानकारी",
+    "changePassword": "पासवर्ड बदलें",
+    "fullName": "पूरा नाम",
+    "emailAddress": "ईमेल पता",
+    "phoneNumber": "फोन नंबर",
+    "accountType": "खाता प्रकार",
+    "companyName": "कंपनी का नाम",
+    "currentPassword": "वर्तमान पासवर्ड",
+    "newPassword": "नया पासवर्ड",
+    "confirmPassword": "नया पासवर्ड पुष्टि करें",
+    "updating": "अपडेट हो रहा है...",
+    "updateProfile": "प्रोफ़ाइल अपडेट करें",
+    "changingPassword": "पासवर्ड बदल रहा है...",
+    "changePassword": "पासवर्ड बदलें",
+    "currentAddress": "वर्तमान पता",
+    "pincode": "पिन कोड",
+    "profileUpdated": "प्रोफ़ाइल अपडेट किया गया",
+    "updateFailed": "अपडेट विफल",
+    "incorrectCurrentPassword": "वर्तमान पासवर्ड गलत है",
+    "passwordChanged": "पासवर्ड बदल दिया गया है",
+    "emailUpdateInitiated": "ईमेल अपडेट शुरू किया गया",
+    "checkNewEmail": "पुष्टिकरण लिंक के लिए अपना नया ईमेल देखें",
+    "errorFetchingProfile": "प्रोफ़ाइल जानकारी लाने में त्रुटि"
   }
 }

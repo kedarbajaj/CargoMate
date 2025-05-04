@@ -16,6 +16,8 @@ import {
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
+import { User, Mail, Phone, Building2, Lock, MapPin, Hash } from 'lucide-react';
 
 // Create schema for profile form
 const profileFormSchema = z.object({
@@ -24,6 +26,8 @@ const profileFormSchema = z.object({
   phone: z.string().min(5, { message: 'Please enter a valid phone number' }),
   role: z.string().optional(),
   companyName: z.string().optional(),
+  currentAddress: z.string().optional(),
+  pincode: z.string().optional(),
 });
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
@@ -41,6 +45,7 @@ const passwordFormSchema = z.object({
 type PasswordFormValues = z.infer<typeof passwordFormSchema>;
 
 const ProfilePage: React.FC = () => {
+  const { t } = useTranslation();
   const { user, userProfile, isVendor } = useAuth();
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
@@ -55,6 +60,8 @@ const ProfilePage: React.FC = () => {
       phone: '',
       role: '',
       companyName: '',
+      currentAddress: '',
+      pincode: '',
     },
   });
 
@@ -80,6 +87,8 @@ const ProfilePage: React.FC = () => {
             email: userProfile.email || '',
             phone: userProfile.phone || '',
             role: userProfile.role || '',
+            currentAddress: userProfile.current_address || '',
+            pincode: userProfile.pincode || '',
           });
           
           // If user is a vendor, fetch vendor data
@@ -99,7 +108,7 @@ const ProfilePage: React.FC = () => {
           // If not, fetch from database
           const { data, error } = await supabase
             .from('users')
-            .select('name, email, phone, role')
+            .select('name, email, phone, role, current_address, pincode')
             .eq('id', user.id)
             .single();
 
@@ -111,6 +120,8 @@ const ProfilePage: React.FC = () => {
             email: data.email || '',
             phone: data.phone || '',
             role: data.role || '',
+            currentAddress: data.current_address || '',
+            pincode: data.pincode || '',
           });
           
           // Check if user is a vendor
@@ -129,14 +140,16 @@ const ProfilePage: React.FC = () => {
         }
       } catch (error) {
         console.error('Error fetching profile:', error);
-        toast.error('Failed to load profile information');
+        toast.error(t('common.error'), {
+          description: t('profile.errorFetchingProfile')
+        });
       } finally {
         setLoading(false);
       }
     };
 
     fetchUserProfile();
-  }, [user, userProfile, isVendor, profileForm]);
+  }, [user, userProfile, isVendor, profileForm, t]);
 
   const onUpdateProfile = async (values: ProfileFormValues) => {
     if (!user) return;
@@ -149,6 +162,8 @@ const ProfilePage: React.FC = () => {
         .update({
           name: values.name,
           phone: values.phone,
+          current_address: values.currentAddress,
+          pincode: values.pincode,
         })
         .eq('id', user.id);
 
@@ -173,15 +188,17 @@ const ProfilePage: React.FC = () => {
         });
 
         if (emailError) throw emailError;
-        toast.info('Email update initiated', {
-          description: 'Please check your new email for a confirmation link',
+        toast.info(t('profile.emailUpdateInitiated'), {
+          description: t('profile.checkNewEmail'),
         });
       }
 
-      toast.success('Profile updated successfully');
+      toast.success(t('profile.profileUpdated'));
     } catch (error) {
       console.error('Error updating profile:', error);
-      toast.error('Failed to update profile');
+      toast.error(t('common.error'), {
+        description: t('profile.updateFailed')
+      });
     } finally {
       setUpdating(false);
     }
@@ -197,7 +214,7 @@ const ProfilePage: React.FC = () => {
       });
 
       if (signInError) {
-        throw new Error('Current password is incorrect');
+        throw new Error(t('profile.incorrectCurrentPassword'));
       }
 
       // Change password
@@ -207,12 +224,12 @@ const ProfilePage: React.FC = () => {
 
       if (error) throw error;
 
-      toast.success('Password changed successfully');
+      toast.success(t('profile.passwordChanged'));
       passwordForm.reset();
     } catch (error: any) {
       console.error('Error changing password:', error);
-      toast.error('Failed to change password', {
-        description: error.message || 'Please try again',
+      toast.error(t('common.error'), {
+        description: error.message || t('common.tryAgain'),
       });
     } finally {
       setChangingPassword(false);
@@ -220,15 +237,18 @@ const ProfilePage: React.FC = () => {
   };
 
   return (
-    <div className="mx-auto max-w-2xl space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold">Profile Settings</h1>
-        <p className="text-muted-foreground">Update your personal information and password</p>
+    <div className="mx-auto max-w-2xl space-y-8 animate-fade-in">
+      <div className="text-center mb-8">
+        <h1 className="text-2xl font-bold text-cargomate-600 dark:text-cargomate-400">{t('profile.settings')}</h1>
+        <p className="text-muted-foreground">{t('profile.updateInfo')}</p>
       </div>
 
       {/* Profile Information Form */}
-      <div className="rounded-lg border bg-card p-6 text-card-foreground shadow">
-        <h2 className="mb-4 text-xl font-semibold">Personal Information</h2>
+      <div className="rounded-lg border bg-white dark:bg-gray-800 p-6 text-card-foreground shadow-lg transition-all hover:shadow-xl">
+        <h2 className="mb-6 text-xl font-semibold flex items-center gap-2">
+          <User size={20} className="text-cargomate-500" />
+          {t('profile.personalInfo')}
+        </h2>
         
         <Form {...profileForm}>
           <form onSubmit={profileForm.handleSubmit(onUpdateProfile)} className="space-y-6">
@@ -237,9 +257,17 @@ const ProfilePage: React.FC = () => {
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Full Name</FormLabel>
+                  <FormLabel className="flex items-center gap-2">
+                    <User className="h-4 w-4 text-cargomate-500" />
+                    {t('profile.fullName')}
+                  </FormLabel>
                   <FormControl>
-                    <Input placeholder="John Doe" {...field} disabled={loading} />
+                    <Input 
+                      placeholder="John Doe" 
+                      {...field} 
+                      disabled={loading}
+                      className="bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-700"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -251,12 +279,16 @@ const ProfilePage: React.FC = () => {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email Address</FormLabel>
+                  <FormLabel className="flex items-center gap-2">
+                    <Mail className="h-4 w-4 text-cargomate-500" />
+                    {t('profile.emailAddress')}
+                  </FormLabel>
                   <FormControl>
                     <Input 
                       placeholder="john@example.com" 
                       {...field} 
                       disabled={true} // Email is managed by Supabase Auth - can't change it directly
+                      className="bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-700"
                     />
                   </FormControl>
                   <FormMessage />
@@ -269,9 +301,61 @@ const ProfilePage: React.FC = () => {
               name="phone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Phone Number</FormLabel>
+                  <FormLabel className="flex items-center gap-2">
+                    <Phone className="h-4 w-4 text-cargomate-500" />
+                    {t('profile.phoneNumber')}
+                  </FormLabel>
                   <FormControl>
-                    <Input placeholder="+1 (555) 123-4567" {...field} disabled={loading} />
+                    <Input 
+                      placeholder="+1 (555) 123-4567" 
+                      {...field} 
+                      disabled={loading} 
+                      className="bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-700"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={profileForm.control}
+              name="currentAddress"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-cargomate-500" />
+                    {t('profile.currentAddress')}
+                  </FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="123 Main St, City, State" 
+                      {...field} 
+                      disabled={loading} 
+                      className="bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-700"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={profileForm.control}
+              name="pincode"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-2">
+                    <Hash className="h-4 w-4 text-cargomate-500" />
+                    {t('profile.pincode')}
+                  </FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="110001" 
+                      {...field} 
+                      disabled={loading} 
+                      className="bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-700"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -283,9 +367,16 @@ const ProfilePage: React.FC = () => {
               name="role"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Account Type</FormLabel>
+                  <FormLabel className="flex items-center gap-2">
+                    <User className="h-4 w-4 text-cargomate-500" />
+                    {t('profile.accountType')}
+                  </FormLabel>
                   <FormControl>
-                    <Input {...field} disabled={true} />
+                    <Input 
+                      {...field} 
+                      disabled={true} 
+                      className="bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-700" 
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -298,9 +389,17 @@ const ProfilePage: React.FC = () => {
                 name="companyName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Company Name</FormLabel>
+                    <FormLabel className="flex items-center gap-2">
+                      <Building2 className="h-4 w-4 text-cargomate-500" />
+                      {t('profile.companyName')}
+                    </FormLabel>
                     <FormControl>
-                      <Input placeholder="Acme Shipping Co." {...field} disabled={loading} />
+                      <Input 
+                        placeholder="Acme Shipping Co." 
+                        {...field} 
+                        disabled={loading} 
+                        className="bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-700"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -310,18 +409,21 @@ const ProfilePage: React.FC = () => {
 
             <Button
               type="submit"
-              variant="cargomate"
+              className="w-full bg-gradient-to-r from-cargomate-500 to-cargomate-600 hover:from-cargomate-600 hover:to-cargomate-700 text-white transition-all"
               disabled={loading || updating}
             >
-              {updating ? 'Updating...' : 'Update Profile'}
+              {updating ? t('profile.updating') : t('profile.updateProfile')}
             </Button>
           </form>
         </Form>
       </div>
 
       {/* Change Password Form */}
-      <div className="rounded-lg border bg-card p-6 text-card-foreground shadow">
-        <h2 className="mb-4 text-xl font-semibold">Change Password</h2>
+      <div className="rounded-lg border bg-white dark:bg-gray-800 p-6 text-card-foreground shadow-lg transition-all hover:shadow-xl">
+        <h2 className="mb-6 text-xl font-semibold flex items-center gap-2">
+          <Lock size={20} className="text-cargomate-500" />
+          {t('profile.changePassword')}
+        </h2>
         
         <Form {...passwordForm}>
           <form onSubmit={passwordForm.handleSubmit(onChangePassword)} className="space-y-6">
@@ -330,9 +432,16 @@ const ProfilePage: React.FC = () => {
               name="currentPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Current Password</FormLabel>
+                  <FormLabel className="flex items-center gap-2">
+                    <Lock className="h-4 w-4 text-cargomate-500" />
+                    {t('profile.currentPassword')}
+                  </FormLabel>
                   <FormControl>
-                    <Input type="password" {...field} />
+                    <Input 
+                      type="password" 
+                      {...field}
+                      className="bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-700" 
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -344,9 +453,16 @@ const ProfilePage: React.FC = () => {
               name="newPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>New Password</FormLabel>
+                  <FormLabel className="flex items-center gap-2">
+                    <Lock className="h-4 w-4 text-cargomate-500" />
+                    {t('profile.newPassword')}
+                  </FormLabel>
                   <FormControl>
-                    <Input type="password" {...field} />
+                    <Input 
+                      type="password" 
+                      {...field} 
+                      className="bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-700"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -358,9 +474,16 @@ const ProfilePage: React.FC = () => {
               name="confirmPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Confirm New Password</FormLabel>
+                  <FormLabel className="flex items-center gap-2">
+                    <Lock className="h-4 w-4 text-cargomate-500" />
+                    {t('profile.confirmPassword')}
+                  </FormLabel>
                   <FormControl>
-                    <Input type="password" {...field} />
+                    <Input 
+                      type="password" 
+                      {...field} 
+                      className="bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-700"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -369,10 +492,10 @@ const ProfilePage: React.FC = () => {
 
             <Button
               type="submit"
-              variant="cargomate"
+              className="w-full bg-gradient-to-r from-cargomate-500 to-cargomate-600 hover:from-cargomate-600 hover:to-cargomate-700 text-white transition-all"
               disabled={changingPassword}
             >
-              {changingPassword ? 'Changing Password...' : 'Change Password'}
+              {changingPassword ? t('profile.changingPassword') : t('profile.changePassword')}
             </Button>
           </form>
         </Form>
