@@ -3,6 +3,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { sendWelcomeEmail } from '@/lib/email';
 
 type AuthContextType = {
   user: User | null;
@@ -79,7 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .from('users')
         .select('name, email, phone, role')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
       
       if (userError) {
         console.error('Error checking user profile:', userError);
@@ -87,14 +88,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       
       // Set the user profile
-      setUserProfile(userData);
-      
-      // Check if admin
-      if (userData?.role === 'admin') {
-        console.log('User is an admin');
-        setIsAdmin(true);
-        setIsVendor(false);
-        return;
+      if (userData) {
+        setUserProfile(userData);
+        
+        // Check if admin
+        if (userData?.role === 'admin') {
+          console.log('User is an admin');
+          setIsAdmin(true);
+          setIsVendor(false);
+          return;
+        }
       }
 
       // Check if vendor
@@ -233,15 +236,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error('Error in resetPassword:', err);
       return { error: err };
     }
-  };
-
-  const sendWelcomeEmail = async (email: string, name: string, role: string) => {
-    // In a real app, this would call a serverless function to send an email
-    console.log(`Welcome email would be sent to ${email} for ${name} with role ${role}`);
-    // For demo purposes we'll just show a toast
-    toast.success(`Welcome email sent to ${email}!`, {
-      description: `Welcome to CargoMate, ${name}! Your account has been created successfully as a ${role}.`,
-    });
   };
 
   const signOut = async () => {

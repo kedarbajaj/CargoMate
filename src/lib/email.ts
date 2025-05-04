@@ -38,13 +38,15 @@ export async function sendDeliveryConfirmation(userId: string, deliveryId: strin
   }
 }
 
-export async function notifyVendorNewDelivery(vendorId: string, deliveryId: string) {
+export async function notifyVendorNewDelivery(vendorId: string, deliveryId: string, pickup: string, dropoff: string) {
   try {
     // Call our Supabase function to notify vendor about new delivery
     const { data, error } = await supabase.functions.invoke('send-delivery-emails', {
       body: { 
         vendorId, 
         deliveryId,
+        pickup,
+        dropoff,
         type: 'vendor_new_delivery' 
       }
     });
@@ -58,12 +60,14 @@ export async function notifyVendorNewDelivery(vendorId: string, deliveryId: stri
   }
 }
 
-export async function notifyAdminNewDelivery(deliveryId: string) {
+export async function notifyAdminNewDelivery(deliveryId: string, userId: string, vendorId: string) {
   try {
     // Call our Supabase function to notify admin about new delivery
     const { data, error } = await supabase.functions.invoke('send-delivery-emails', {
       body: { 
         deliveryId,
+        userId,
+        vendorId,
         type: 'admin_new_delivery' 
       }
     });
@@ -73,6 +77,27 @@ export async function notifyAdminNewDelivery(deliveryId: string) {
     return true;
   } catch (error) {
     console.error('Error notifying admin:', error);
+    return false;
+  }
+}
+
+export async function sendDeliveryStatusUpdate(userId: string, deliveryId: string, status: string) {
+  try {
+    // Call our Supabase function to send status update email
+    const { data, error } = await supabase.functions.invoke('send-delivery-emails', {
+      body: { 
+        userId, 
+        deliveryId, 
+        status,
+        type: 'status_update' 
+      }
+    });
+    
+    if (error) throw error;
+    console.log(`Status update email sent for delivery ${deliveryId}`);
+    return true;
+  } catch (error) {
+    console.error('Error sending status update email:', error);
     return false;
   }
 }

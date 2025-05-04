@@ -27,6 +27,8 @@ import {
   DialogHeader,
   DialogTitle
 } from "@/components/ui/dialog";
+import EmailVerificationStatus from '@/components/EmailVerificationStatus';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const formSchema = z.object({
   email: z.string()
@@ -52,6 +54,8 @@ const LoginPage: React.FC = () => {
   const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
   const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false);
   const [generalError, setGeneralError] = useState<string | null>(null);
+  const [isEmailSent, setIsEmailSent] = useState(false);
+  const [verificationEmail, setVerificationEmail] = useState<string>('');
 
   useEffect(() => {
     if (user) {
@@ -94,6 +98,10 @@ const LoginPage: React.FC = () => {
           toast.error('Login failed', {
             description: 'Incorrect email or password. Please try again.',
           });
+        } else if (error.code === 'email_not_confirmed') {
+          setVerificationEmail(values.email);
+          setIsEmailSent(true);
+          setGeneralError('Please check your email and click the verification link to complete your registration.');
         } else {
           setGeneralError(error.message || 'An error occurred while signing in.');
           toast.error('Login failed', {
@@ -153,11 +161,15 @@ const LoginPage: React.FC = () => {
           <h1 className="text-center text-3xl font-extrabold text-indigo-600 mb-2">CargoMate</h1>
           <h2 className="mt-6 text-center text-2xl font-bold text-gray-900">Sign in to your account</h2>
         </div>
+        
+        <EmailVerificationStatus isEmailSent={isEmailSent} email={verificationEmail} />
+        
         {generalError && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
-            {generalError}
-          </div>
+          <Alert variant="destructive" className="mb-4">
+            <AlertDescription>{generalError}</AlertDescription>
+          </Alert>
         )}
+        
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="mt-8 space-y-6">
             <FormField
