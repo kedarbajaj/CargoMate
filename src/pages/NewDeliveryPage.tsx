@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -107,8 +106,8 @@ const NewDeliveryPage: React.FC = () => {
         toast.success('Delivery scheduled successfully!');
         
         // Step 3: Send notifications to all parties
-        // Fix the function call by providing all required arguments
-        await sendDeliveryConfirmation(user.email, user.id, data[0].id, values.package_type);
+        // Fix the function call by matching the expected parameters in src/lib/email.ts
+        await sendDeliveryConfirmation(user.id, data[0].id, values.package_type);
         
         // Find a vendor to assign (for demo purposes, we'll just get the first vendor)
         const { data: vendors } = await supabase
@@ -123,12 +122,12 @@ const NewDeliveryPage: React.FC = () => {
             .update({ vendor_id: vendors[0].id })
             .eq('id', data[0].id);
             
-          // Fix the function call by providing all required arguments
-          await notifyVendorNewDelivery(vendors[0].email, vendors[0].id, data[0].id);
+          // Fix the function call by providing the correct arguments
+          await notifyVendorNewDelivery(vendors[0].id, data[0].id, values.pickup_address, values.drop_address);
         }
         
-        // Notify admin
-        await notifyAdminNewDelivery(data[0].id);
+        // Notify admin - fix the function call by providing all required arguments
+        await notifyAdminNewDelivery(data[0].id, user.id, vendors?.[0]?.id || '');
         
         // Navigate to the invoice/bill page
         if (paymentData?.[0]) {
