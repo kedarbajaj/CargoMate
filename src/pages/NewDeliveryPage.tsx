@@ -107,12 +107,13 @@ const NewDeliveryPage: React.FC = () => {
         toast.success('Delivery scheduled successfully!');
         
         // Step 3: Send notifications to all parties
-        await sendDeliveryConfirmation(user.id, data[0].id, values.package_type);
+        // Fix the function call by providing all required arguments
+        await sendDeliveryConfirmation(user.email, user.id, data[0].id, values.package_type);
         
         // Find a vendor to assign (for demo purposes, we'll just get the first vendor)
         const { data: vendors } = await supabase
           .from('vendors')
-          .select('id')
+          .select('id, email')
           .limit(1);
           
         if (vendors && vendors.length > 0) {
@@ -122,8 +123,8 @@ const NewDeliveryPage: React.FC = () => {
             .update({ vendor_id: vendors[0].id })
             .eq('id', data[0].id);
             
-          // Notify the vendor
-          await notifyVendorNewDelivery(vendors[0].id, data[0].id);
+          // Fix the function call by providing all required arguments
+          await notifyVendorNewDelivery(vendors[0].email, vendors[0].id, data[0].id);
         }
         
         // Notify admin
