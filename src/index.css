@@ -144,3 +144,55 @@
 .status-cancelled {
   @apply bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200;
 }
+
+/* PDF printing styles */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  
+  .print-version, .print-version * {
+    visibility: visible;
+  }
+  
+  .print-version {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+  
+  .no-print {
+    display: none !important;
+  }
+}
+
+/* Styles for the printed invoice */
+.print-version {
+  background-color: white;
+  color: black;
+  padding: 20px;
+  font-family: 'Arial', sans-serif;
+}
+
+.print-version h1, 
+.print-version h2, 
+.print-version h3 {
+  color: #333;
+}
+
+.print-version table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.print-version th, 
+.print-version td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+.print-version th {
+  background-color: #f2f2f2;
+}

@@ -34,7 +34,7 @@ const UserAccountDropdown: React.FC = () => {
       try {
         const { data, error } = await supabase
           .from('users')
-          .select('name, email, role')
+          .select('name, email, role, phone, current_address, pincode')
           .eq('id', user.id)
           .single();
         

@@ -53,6 +53,8 @@ export interface InvoiceData {
     name: string;
     email: string;
     phone: string;
+    current_address?: string;
+    pincode?: string;
   };
   pickup_address: string;
   drop_address: string;

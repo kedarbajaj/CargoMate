@@ -40,13 +40,13 @@ type FormValues = z.infer<typeof formSchema>;
 const NewDeliveryPage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, userProfile } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      pickup_address: '',
+      pickup_address: userProfile?.current_address || '',
       drop_address: '',
       weight_kg: undefined,
       package_type: 'standard',
@@ -85,7 +85,7 @@ const NewDeliveryPage: React.FC = () => {
         const weightFactor = values.weight_kg * 10; // 10 INR per kg
         
         // Package type multipliers
-        const packageMultiplier = {
+        const packageMultiplier: Record<string, number> = {
           'standard': 1,
           'handle_with_care': 1.2,
           'fragile': 1.5,
